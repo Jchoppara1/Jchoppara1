@@ -1,16 +1,88 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
+import { insertWineSchema, wineFiltersSchema } from "@shared/schema";
+import { z } from "zod";
 
 export async function registerRoutes(
   httpServer: Server,
   app: Express
 ): Promise<Server> {
-  // put application routes here
-  // prefix all routes with /api
+  
+  app.get("/api/wines", async (req, res) => {
+    try {
+      const filters = wineFiltersSchema.parse({
+        search: req.query.search || undefined,
+        wineType: req.query.wineType || undefined,
+        priceCategory: req.query.priceCategory || undefined,
+        foodPairing: req.query.foodPairing || undefined,
+      });
+      
+      const wines = await storage.listWines(filters);
+      res.json(wines);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        res.status(400).json({ error: "Invalid filter parameters", details: error.errors });
+      } else {
+        res.status(500).json({ error: "Failed to fetch wines" });
+      }
+    }
+  });
 
-  // use storage to perform CRUD operations on the storage interface
-  // e.g. storage.insertUser(user) or storage.getUserByUsername(username)
+  app.get("/api/wines/:id", async (req, res) => {
+    try {
+      const wine = await storage.getWine(req.params.id);
+      if (!wine) {
+        return res.status(404).json({ error: "Wine not found" });
+      }
+      res.json(wine);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch wine" });
+    }
+  });
+
+  app.post("/api/wines", async (req, res) => {
+    try {
+      const validated = insertWineSchema.parse(req.body);
+      const wine = await storage.createWine(validated);
+      res.status(201).json(wine);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        res.status(400).json({ error: "Invalid wine data", details: error.errors });
+      } else {
+        res.status(500).json({ error: "Failed to create wine" });
+      }
+    }
+  });
+
+  app.patch("/api/wines/:id", async (req, res) => {
+    try {
+      const validated = insertWineSchema.partial().parse(req.body);
+      const wine = await storage.updateWine(req.params.id, validated);
+      if (!wine) {
+        return res.status(404).json({ error: "Wine not found" });
+      }
+      res.json(wine);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        res.status(400).json({ error: "Invalid wine data", details: error.errors });
+      } else {
+        res.status(500).json({ error: "Failed to update wine" });
+      }
+    }
+  });
+
+  app.delete("/api/wines/:id", async (req, res) => {
+    try {
+      const deleted = await storage.deleteWine(req.params.id);
+      if (!deleted) {
+        return res.status(404).json({ error: "Wine not found" });
+      }
+      res.status(204).send();
+    } catch (error) {
+      res.status(500).json({ error: "Failed to delete wine" });
+    }
+  });
 
   return httpServer;
 }
