@@ -1,0 +1,38 @@
+id,category,name,price,meat_type
+1,Mazzes,Smoked Chilean Bass,28,Fish - Sea Bass
+2,Mazzes,Wings (GF),15,Poultry - Chicken
+3,Mazzes,Zeytoun Parvadeh (GF),7,No Meat
+4,Mazzes,Omani Shrimp,22,Shellfish - Shrimp
+5,Mazzes,Adana Bite,14,Red Meat - Ground Lamb/Beef
+6,Mazzes,Falafel Plate (GF),26,Vegetarian
+7,Spreads,Bandari Olovieh,14,Fish - Salmon
+8,Spreads,Hummus (GF),10,Vegetarian
+9,Spreads,Mast Khiyar (GF),7,Vegetarian
+10,Spreads,Kashk Bademjoon,15,Vegetarian
+11,Spreads,Dill Labneh (GF),13,Vegetarian
+12,Spreads,Labneh (GF),11,Vegetarian
+13,Greens & Grains,Beet Carpaccio (GF),15,Vegetarian
+14,Greens & Grains,Adas Polo (GF),12,Vegetarian
+15,Greens & Grains,Sabzi Polo (GF),13,Vegetarian
+16,Greens & Grains,Polo Sefid (GF),8,Vegetarian
+17,Greens & Grains,Za'taar Fries (GF),12,Vegetarian
+18,Greens & Grains,Lamb & Baghali Tachin (GF),23,Red Meat - Lamb
+19,Greens & Grains,Pear and Kale (GF),16,Vegetarian
+20,Greens & Grains,Mixed Green Salad (GF),15,Vegetarian
+21,Greens & Grains,Whole Roasted Cauliflower,19,Vegetarian
+22,Greens & Grains,Heirloom Tomato Salad,15,Vegetarian
+23,Meats,Seabass,47,Fish - Sea Bass
+24,Meats,Honey Harissa Chicken (GF),27,Poultry - Chicken
+25,Meats,Joojeh Kabob (GF),26,Poultry - Chicken
+26,Meats,Chicken Barg,30,Poultry - Chicken
+27,Meats,Chicken Kofta (GF),20,Poultry - Ground Chicken
+28,Meats,Whole Stuffed Branzino (GF),34,Fish - Branzino
+29,Meats,Salmon Kabob,32,Fish - Salmon
+30,Meats,Chinjeh,31,Red Meat - Beef
+31,Meats,Beef Barg,32,Red Meat - Beef
+32,Meats & Seafood,Hanger Steak (GF),29,Red Meat - Beef
+33,Meats,Gheimeh Bademjoon (GF),31,Red Meat - Lamb
+34,Meats,Gheimeh Bademjoon Vegetarian,18,Vegetarian
+35,Meats,Lamb Neck (GF),31,Red Meat - Lamb
+36,Meats,Lamb Kabob,32,Red Meat - Lamb
+37,Meats,Koobideh Kabob,23,Red Meat - Ground Beef/Lamb
