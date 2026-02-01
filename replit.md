@@ -2,7 +2,13 @@
 
 ## Overview
 
-A restaurant wine catalog management application that allows staff to organize, filter, and display wine collections. The app features automatic food pairing suggestions based on wine type and varietal, along with automatic price categorization. Built as a full-stack TypeScript application with a React frontend and Express backend.
+A restaurant wine catalog management application that allows staff to organize, filter, and display wine collections. The app features:
+- Automatic food pairing suggestions based on wine type and varietal
+- Automatic price categorization ($, $$, $$$, $$$$)
+- Complete food menu system with 37 Middle Eastern dishes across 4 categories
+- Bidirectional wine/food pairing recommendations
+
+Built as a full-stack TypeScript application with a React frontend and Express backend.
 
 ## User Preferences
 
@@ -56,9 +62,20 @@ server/           # Express backend
   storage.ts      # Data storage interface and implementation
   vite.ts         # Vite integration for development
 shared/           # Shared code between client and server
-  schema.ts       # Drizzle schema and Zod validators
+  schema.ts       # Wine schema and Zod validators
+  foodSchema.ts   # Food schema with categories and filters
   wineRules.ts    # Business logic for wine categorization
+  pairingRules.ts # Bidirectional wine/food pairing logic
 ```
+
+### Routes
+- `/` - Wine List with food pairings on cards
+- `/food` - Food Menu with category filtering
+- `/food/:id` - Food Detail with wine recommendations
+
+### Data Files
+- `attached_assets/wines.csv` - 66 wines loaded at startup
+- `attached_assets/food_menu.csv` - 37 food items loaded at startup
 
 ## External Dependencies
 
