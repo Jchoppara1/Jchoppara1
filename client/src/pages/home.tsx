@@ -19,6 +19,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Search, Plus, Wine as WineIcon, Pencil, Trash2, X, Filter, GlassWater, Grape } from "lucide-react";
 import { formatPrice } from "@shared/wineRules";
+import { WineFoodPairings } from "@/components/wine-food-pairings";
 
 const formSchema = z.object({
   name: z.string().min(1, "Name is required").max(200),
@@ -173,6 +174,7 @@ function WineCard({
             </Badge>
           )}
         </div>
+        <WineFoodPairings wine={wine} maxItems={3} />
       </CardContent>
     </Card>
   );

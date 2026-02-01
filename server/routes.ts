@@ -2,7 +2,13 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { insertWineSchema, wineFiltersSchema } from "@shared/schema";
+import { foodCategories } from "@shared/foodSchema";
 import { z } from "zod";
+
+const foodFiltersSchema = z.object({
+  search: z.string().optional(),
+  category: z.enum(foodCategories).optional(),
+});
 
 export async function registerRoutes(
   httpServer: Server,
@@ -81,6 +87,37 @@ export async function registerRoutes(
       res.status(204).send();
     } catch (error) {
       res.status(500).json({ error: "Failed to delete wine" });
+    }
+  });
+
+  // Food endpoints
+  app.get("/api/foods", async (req, res) => {
+    try {
+      const filters = foodFiltersSchema.parse({
+        search: req.query.search || undefined,
+        category: req.query.category || undefined,
+      });
+      
+      const foods = await storage.listFoods(filters);
+      res.json(foods);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        res.status(400).json({ error: "Invalid filter parameters", details: error.errors });
+      } else {
+        res.status(500).json({ error: "Failed to fetch foods" });
+      }
+    }
+  });
+
+  app.get("/api/foods/:id", async (req, res) => {
+    try {
+      const food = await storage.getFood(req.params.id);
+      if (!food) {
+        return res.status(404).json({ error: "Food not found" });
+      }
+      res.json(food);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch food" });
     }
   });
 

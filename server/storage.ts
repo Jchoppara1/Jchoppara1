@@ -1,4 +1,5 @@
 import { type Wine, type InsertWine, type WineFilters, type User, type InsertUser } from "@shared/schema";
+import { type Food, type InsertFood, type FoodFilters, type FoodCategory } from "@shared/foodSchema";
 import { applyComputedFields } from "@shared/wineRules";
 import { randomUUID } from "crypto";
 import * as fs from "fs";
@@ -14,6 +15,9 @@ export interface IStorage {
   createWine(wine: InsertWine): Promise<Wine>;
   updateWine(id: string, wine: Partial<InsertWine>): Promise<Wine | undefined>;
   deleteWine(id: string): Promise<boolean>;
+
+  listFoods(filters?: FoodFilters): Promise<Food[]>;
+  getFood(id: string): Promise<Food | undefined>;
 }
 
 function parseCSV(content: string): Record<string, string>[] {
@@ -86,14 +90,44 @@ function loadWinesFromCSV(): Omit<InsertWine, "id">[] {
   }));
 }
 
+function mapCategoryToFoodCategory(category: string): FoodCategory {
+  const normalized = category.trim();
+  if (normalized === "Mazzes") return "Mazzes";
+  if (normalized === "Spreads") return "Spreads";
+  if (normalized === "Greens & Grains") return "Greens & Grains";
+  if (normalized === "Meats & Seafood") return "Meats & Seafood";
+  return "Meats & Seafood"; // Default fallback
+}
+
+function loadFoodsFromCSV(): Omit<InsertFood, "id">[] {
+  const csvPath = path.join(process.cwd(), 'delbarcsv', 'food_menu.csv');
+  
+  if (!fs.existsSync(csvPath)) {
+    console.warn(`CSV file not found at ${csvPath}, using empty food list`);
+    return [];
+  }
+  
+  const content = fs.readFileSync(csvPath, 'utf-8');
+  const records = parseCSV(content);
+  
+  return records.map(record => ({
+    name: record.name || 'Unknown Dish',
+    category: mapCategoryToFoodCategory(record.category),
+    priceCents: Math.round(parseFloat(record.price || '0') * 100),
+  }));
+}
+
 export class MemStorage implements IStorage {
   private users: Map<string, User>;
   private wines: Map<string, Wine>;
+  private foods: Map<string, Food>;
 
   constructor() {
     this.users = new Map();
     this.wines = new Map();
+    this.foods = new Map();
     this.seedWines();
+    this.seedFoods();
   }
 
   private seedWines() {
@@ -223,6 +257,42 @@ export class MemStorage implements IStorage {
 
   async deleteWine(id: string): Promise<boolean> {
     return this.wines.delete(id);
+  }
+
+  private seedFoods() {
+    const foods = loadFoodsFromCSV();
+    console.log(`Loaded ${foods.length} foods from CSV`);
+    
+    for (const food of foods) {
+      const id = randomUUID();
+      this.foods.set(id, {
+        id,
+        name: food.name,
+        category: food.category,
+        priceCents: food.priceCents,
+      });
+    }
+  }
+
+  async listFoods(filters?: FoodFilters): Promise<Food[]> {
+    let foods = Array.from(this.foods.values());
+    
+    if (filters?.search) {
+      const search = filters.search.toLowerCase();
+      foods = foods.filter(
+        (food) => food.name.toLowerCase().includes(search)
+      );
+    }
+    
+    if (filters?.category) {
+      foods = foods.filter((food) => food.category === filters.category);
+    }
+    
+    return foods.sort((a, b) => a.name.localeCompare(b.name));
+  }
+
+  async getFood(id: string): Promise<Food | undefined> {
+    return this.foods.get(id);
   }
 }
 
