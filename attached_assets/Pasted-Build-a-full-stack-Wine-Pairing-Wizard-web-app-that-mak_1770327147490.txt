@@ -1,0 +1,110 @@
+Build a full-stack “Wine Pairing Wizard” web app that makes pairing recommendations by combining:
+1) a deterministic pairing rules engine (baseline)
+2) live web-sourced expert guidance from reputable sommelier/wine educator publications (evidence), with citations
+
+Tech requirements
+- Frontend: Next.js (App Router) + TypeScript + Tailwind
+- Backend: Next.js API routes (or Express inside Next) in TypeScript
+- DB: Postgres (use Prisma ORM)
+- Auth: simple email/password for Admin only (no user auth required)
+- Deployment: run locally in Replit with one command
+
+Core UX
+- Landing page: “Wine Pairing Wizard”
+- Wizard supports TWO modes:
+  A) “I have a dish” → recommend wines
+  B) “I have a wine” → recommend dishes/foods
+- Step-by-step wizard with progress indicator, modern UI
+- Inputs (dish mode):
+  - dish name (free text)
+  - primary protein (optional dropdown: beef, lamb, pork, poultry, fish, shellfish, veg, cheese, dessert)
+  - sauce/style (free text)
+  - cooking method (dropdown)
+  - key flavor notes (chips/tags e.g., spicy, creamy, smoky, citrus, herbaceous, sweet, umami)
+  - heat level (0–5)
+  - sweetness level (0–5)
+  - dietary constraints (optional)
+  - budget per bottle (optional)
+  - preferred wine color (red/white/rose/sparkling/fortified/any)
+- Inputs (wine mode):
+  - wine name OR varietal (free text)
+  - region (optional)
+  - sweetness/body/tannin/acidity sliders (0–5) optional
+  - occasion (optional)
+- Results page:
+  - Top 3 pairings with: wine/dish name, why it works, serving temp, glassware tip, and 1–2 alternates
+  - “Evidence” section that shows citations (title + domain + snippet + link)
+  - “Rule-based reasoning” section that explains the baseline pairing logic used
+  - “Confidence score” (0–100) derived from rule match strength + evidence quality/overlap
+  - Buttons: “Refine” (go back with inputs preserved) and “New pairing”
+
+Reputable internet sourcing (“Sommelier Evidence Engine”)
+- Implement a backend module that can fetch web evidence using a SEARCH API (do NOT scrape Google directly).
+- Use an env var for a search provider key (choose one: SERPER_API_KEY, TAVILY_API_KEY, or BING_SEARCH_KEY; implement at least Serper.dev as default).
+- The evidence engine should:
+  - Query: “best wine pairing for {dish}” and “{wine} pairing” and “sommelier pairing {dish}”
+  - Restrict/whitelist domains to reputable sources (hardcode + make editable in Admin):
+    - decanter.com
+    - winespectator.com
+    - wineenthusiast.com
+    - jancisrobinson.com
+    - guildsomm.com
+    - masterclass.com (wine lessons)
+    - winefolly.com (educational reference)
+    - thewinesociety.com (pairing guides)
+    - vivino.com only for broad style notes (lower weight)
+  - Assign “source weights”:
+    - Tier A (highest): guildsomm, jancisrobinson, winespectator, decanter
+    - Tier B: wineenthusiast, thewinesociety, masterclass
+    - Tier C (lowest): winefolly, vivino
+  - Extract: title, url, domain, snippet/summary
+  - Deduplicate similar results
+  - Cache results in Postgres (table EvidenceCache) keyed by normalized query + mode + major inputs, TTL 7 days
+  - Return at most 6 evidence items to the UI
+
+Decision logic
+- Create a baseline pairing rules engine that outputs candidate pairings with scores:
+  - Consider acidity, sweetness, tannin, body, spice heat, sauce richness, smoke, salt, fat, and cooking method
+  - Provide rule explanations (human-readable)
+- Combine baseline candidates with evidence:
+  - If evidence mentions a wine style/varietal/region that matches a candidate, boost it
+  - Boost proportional to tier weight and number of corroborating sources
+  - Penalize candidates with no evidence when evidence is available
+  - Produce final top 3 with confidence
+
+Admin panel
+- Admin login (seed admin from env: ADMIN_EMAIL + ADMIN_PASSWORD)
+- Admin can:
+  - Manage domain whitelist + tier weight
+  - View evidence cache entries + force refresh
+  - View last 50 pairing requests (anonymized; store only inputs, timestamp, and result IDs)
+
+Database schema (Prisma)
+- EvidenceCache: id, queryKey, mode, inputsHash, createdAt, expiresAt, items(JSON)
+- PairingRequest: id, mode, inputs(JSON), createdAt
+- PairingResult: id, requestId, results(JSON), confidence, createdAt
+- AdminUser: id, email, passwordHash, createdAt
+- SourceDomain: id, domain, tier(A/B/C), weight, enabled
+
+Security + compliance
+- Never store user personal data (no accounts)
+- Do not scrape pages directly; only use search API results and snippets
+- Include clear disclaimer: “Suggestions are educational; verify with a professional for allergies/medical concerns.”
+- Rate limit API endpoints (basic IP-based in-memory limiter is fine)
+
+Implementation details
+- Provide clean, reusable TypeScript code:
+  - /lib/pairingRules.ts (rules + scoring + explanations)
+  - /lib/evidenceEngine.ts (search + whitelist + weighting + caching)
+  - /app/wizard/* (wizard steps)
+  - /app/results/* (results page)
+  - /app/admin/* (admin pages)
+  - /app/api/pair/* (POST: inputs → returns results + citations)
+  - /app/api/admin/* (CRUD for domains, cache)
+- Provide setup instructions in README:
+  - how to set env vars for search API + admin creds + DATABASE_URL
+  - how to run migrations and start app
+- Add sensible UI polish: loading states, error states (e.g. no evidence found), and “offline mode” fallback (rules-only)
+
+Deliverable
+- The complete runnable Replit project code with all pages, API routes, Prisma schema, migrations, and seed logic.
