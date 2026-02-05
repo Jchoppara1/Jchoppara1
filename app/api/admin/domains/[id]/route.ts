@@ -1,17 +1,21 @@
 import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "@/lib/db";
+import { db } from "@/lib/db";
+import { sourceDomains } from "@/lib/schema";
+import { eq } from "drizzle-orm";
 
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     const body = await request.json();
     
-    const domain = await prisma.sourceDomain.update({
-      where: { id: params.id },
-      data: body,
-    });
+    const [domain] = await db
+      .update(sourceDomains)
+      .set(body)
+      .where(eq(sourceDomains.id, id))
+      .returning();
 
     return NextResponse.json(domain);
   } catch (error) {

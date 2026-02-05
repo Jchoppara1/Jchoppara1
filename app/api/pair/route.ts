@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "@/lib/db";
+import { db } from "@/lib/db";
+import { wines, foods, pairingRequests, pairingResults } from "@/lib/schema";
 import { getWineRecommendations, getFoodRecommendations, type DishInput, type WineInput, type PairingCandidate } from "@/lib/pairingRules";
-import { searchEvidence, calculateConfidence, type EvidenceResult, type EvidenceItem } from "@/lib/evidenceEngine";
+import { searchEvidence, calculateConfidence, type EvidenceResult } from "@/lib/evidenceEngine";
 
 const rateLimitMap = new Map<string, { count: number; resetTime: number }>();
 const RATE_LIMIT = 20;
@@ -45,12 +46,10 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const pairingRequest = await prisma.pairingRequest.create({
-      data: {
-        mode,
-        inputs: inputs as Record<string, unknown>,
-      },
-    });
+    const [pairingRequest] = await db.insert(pairingRequests).values({
+      mode,
+      inputs: inputs as Record<string, unknown>,
+    }).returning();
 
     let results: PairingCandidate[];
     let evidence: EvidenceResult;
@@ -58,9 +57,9 @@ export async function POST(request: NextRequest) {
 
     if (mode === "dish") {
       const dishInput = inputs as DishInput;
-      const wines = await prisma.wine.findMany();
+      const allWines = await db.select().from(wines);
       
-      const candidates = getWineRecommendations(dishInput, wines);
+      const candidates = getWineRecommendations(dishInput, allWines);
       
       const searchQuery = dishInput.dishName + (dishInput.protein ? ` ${dishInput.protein}` : "");
       evidence = await searchEvidence(searchQuery, "dish", inputs);
@@ -86,7 +85,7 @@ export async function POST(request: NextRequest) {
       results = boostedCandidates.slice(0, 3);
       
       const matchingEvidence = results.reduce((count, r) => {
-        return count + evidence.items.filter(e => 
+        return count + evidence.items.filter((e) => 
           e.snippet.toLowerCase().includes((r.varietal || "").toLowerCase())
         ).length;
       }, 0);
@@ -94,9 +93,9 @@ export async function POST(request: NextRequest) {
       confidence = calculateConfidence(results[0]?.score || 50, evidence.items, matchingEvidence);
     } else {
       const wineInput = inputs as WineInput;
-      const foods = await prisma.food.findMany();
+      const allFoods = await db.select().from(foods);
       
-      const candidates = getFoodRecommendations(wineInput, foods);
+      const candidates = getFoodRecommendations(wineInput, allFoods);
       
       const searchQuery = wineInput.wineName || wineInput.varietal || "wine";
       evidence = await searchEvidence(searchQuery, "wine", inputs);
@@ -121,7 +120,7 @@ export async function POST(request: NextRequest) {
       results = boostedCandidates.slice(0, 3);
       
       const matchingEvidence = results.reduce((count, r) => {
-        return count + evidence.items.filter(e => 
+        return count + evidence.items.filter((e) => 
           e.snippet.toLowerCase().includes(r.name.toLowerCase())
         ).length;
       }, 0);
@@ -129,16 +128,14 @@ export async function POST(request: NextRequest) {
       confidence = calculateConfidence(results[0]?.score || 50, evidence.items, matchingEvidence);
     }
 
-    await prisma.pairingResult.create({
-      data: {
-        requestId: pairingRequest.id,
-        results: {
-          pairings: results,
-          evidence: evidence.items,
-          evidenceCached: evidence.cached,
-        } as Record<string, unknown>,
-        confidence,
+    await db.insert(pairingResults).values({
+      requestId: pairingRequest.id,
+      results: {
+        pairings: results,
+        evidence: evidence.items,
+        evidenceCached: evidence.cached,
       },
+      confidence,
     });
 
     return NextResponse.json({

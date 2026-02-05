@@ -1,12 +1,15 @@
 import { NextResponse } from "next/server";
-import { prisma } from "@/lib/db";
+import { db } from "@/lib/db";
+import { evidenceCache } from "@/lib/schema";
+import { desc } from "drizzle-orm";
 
 export async function GET() {
   try {
-    const cache = await prisma.evidenceCache.findMany({
-      orderBy: { createdAt: "desc" },
-      take: 50,
-    });
+    const cache = await db
+      .select()
+      .from(evidenceCache)
+      .orderBy(desc(evidenceCache.createdAt))
+      .limit(50);
     return NextResponse.json(cache);
   } catch (error) {
     console.error("Error fetching cache:", error);
@@ -16,7 +19,7 @@ export async function GET() {
 
 export async function DELETE() {
   try {
-    await prisma.evidenceCache.deleteMany();
+    await db.delete(evidenceCache);
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error("Error clearing cache:", error);

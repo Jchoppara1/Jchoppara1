@@ -1,12 +1,12 @@
 import { NextResponse } from "next/server";
-import { prisma } from "@/lib/db";
+import { db } from "@/lib/db";
+import { wines } from "@/lib/schema";
+import { asc } from "drizzle-orm";
 
 export async function GET() {
   try {
-    const wines = await prisma.wine.findMany({
-      orderBy: { name: "asc" },
-    });
-    return NextResponse.json(wines);
+    const allWines = await db.select().from(wines).orderBy(asc(wines.name));
+    return NextResponse.json(allWines);
   } catch (error) {
     console.error("Error fetching wines:", error);
     return NextResponse.json({ error: "Failed to fetch wines" }, { status: 500 });

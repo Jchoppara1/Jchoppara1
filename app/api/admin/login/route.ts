@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "@/lib/db";
+import { db } from "@/lib/db";
+import { adminUsers } from "@/lib/schema";
+import { eq } from "drizzle-orm";
 import bcrypt from "bcryptjs";
 
 export async function POST(request: NextRequest) {
@@ -13,17 +15,20 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const admin = await prisma.adminUser.findUnique({
-      where: { email },
-    });
+    const admins = await db
+      .select()
+      .from(adminUsers)
+      .where(eq(adminUsers.email, email))
+      .limit(1);
 
-    if (!admin) {
+    if (admins.length === 0) {
       return NextResponse.json(
         { error: "Invalid credentials" },
         { status: 401 }
       );
     }
 
+    const admin = admins[0];
     const validPassword = await bcrypt.compare(password, admin.passwordHash);
 
     if (!validPassword) {

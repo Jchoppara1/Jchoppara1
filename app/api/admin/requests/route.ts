@@ -1,17 +1,19 @@
 import { NextResponse } from "next/server";
-import { prisma } from "@/lib/db";
+import { db } from "@/lib/db";
+import { pairingRequests } from "@/lib/schema";
+import { desc } from "drizzle-orm";
 
 export async function GET() {
   try {
-    const requests = await prisma.pairingRequest.findMany({
-      orderBy: { createdAt: "desc" },
-      take: 50,
-      select: {
-        id: true,
-        mode: true,
-        createdAt: true,
-      },
-    });
+    const requests = await db
+      .select({
+        id: pairingRequests.id,
+        mode: pairingRequests.mode,
+        createdAt: pairingRequests.createdAt,
+      })
+      .from(pairingRequests)
+      .orderBy(desc(pairingRequests.createdAt))
+      .limit(50);
     return NextResponse.json(requests);
   } catch (error) {
     console.error("Error fetching requests:", error);

@@ -1,4 +1,6 @@
-import { prisma } from "./db";
+import { db } from "./db";
+import { sourceDomains, evidenceCache } from "./schema";
+import { eq, gt, and } from "drizzle-orm";
 
 export interface EvidenceItem {
   title: string;
@@ -32,9 +34,7 @@ function hashInputs(inputs: Record<string, unknown>): string {
 
 async function getSourceDomains(): Promise<Array<{ domain: string; tier: string; weight: number; enabled: boolean }>> {
   try {
-    const domains = await prisma.sourceDomain.findMany({
-      where: { enabled: true },
-    });
+    const domains = await db.select().from(sourceDomains).where(eq(sourceDomains.enabled, true));
     return domains.length > 0 ? domains : DEFAULT_DOMAINS.map(d => ({ ...d, enabled: true }));
   } catch {
     return DEFAULT_DOMAINS.map(d => ({ ...d, enabled: true }));
@@ -50,18 +50,22 @@ export async function searchEvidence(
   const queryKey = query.toLowerCase().trim();
 
   try {
-    const cached = await prisma.evidenceCache.findFirst({
-      where: {
-        queryKey,
-        mode,
-        inputsHash,
-        expiresAt: { gt: new Date() },
-      },
-    });
+    const cached = await db
+      .select()
+      .from(evidenceCache)
+      .where(
+        and(
+          eq(evidenceCache.queryKey, queryKey),
+          eq(evidenceCache.mode, mode),
+          eq(evidenceCache.inputsHash, inputsHash),
+          gt(evidenceCache.expiresAt, new Date())
+        )
+      )
+      .limit(1);
 
-    if (cached) {
+    if (cached.length > 0) {
       return {
-        items: cached.items as EvidenceItem[],
+        items: cached[0].items as EvidenceItem[],
         cached: true,
       };
     }
@@ -73,8 +77,7 @@ export async function searchEvidence(
     return { items: [], cached: false };
   }
 
-  const sourceDomains = await getSourceDomains();
-  const enabledDomains = sourceDomains.filter(d => d.enabled);
+  const enabledDomains = await getSourceDomains();
 
   const queries = [
     `best wine pairing for ${query}`,
@@ -136,14 +139,12 @@ export async function searchEvidence(
 
   if (sortedResults.length > 0) {
     try {
-      await prisma.evidenceCache.create({
-        data: {
-          queryKey,
-          mode,
-          inputsHash,
-          items: sortedResults as unknown as Record<string, unknown>[],
-          expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
-        },
+      await db.insert(evidenceCache).values({
+        queryKey,
+        mode,
+        inputsHash,
+        items: sortedResults,
+        expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
       });
     } catch {
     }
