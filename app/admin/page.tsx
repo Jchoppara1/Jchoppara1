@@ -33,6 +33,7 @@ interface PairingRequestLog {
 
 export default function AdminPage() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [checkingSession, setCheckingSession] = useState(true);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loginError, setLoginError] = useState("");
@@ -42,6 +43,37 @@ export default function AdminPage() {
   const [cache, setCache] = useState<CacheEntry[]>([]);
   const [requests, setRequests] = useState<PairingRequestLog[]>([]);
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    const checkSession = async () => {
+      try {
+        const response = await fetch("/api/admin/session");
+        if (response.ok) {
+          const data = await response.json();
+          if (data.authenticated) {
+            setIsLoggedIn(true);
+            loadData();
+          }
+        }
+      } catch {
+        // Session check failed, stay logged out
+      }
+      setCheckingSession(false);
+    };
+    checkSession();
+  }, []);
+
+  const handleLogout = async () => {
+    try {
+      await fetch("/api/admin/logout", { method: "POST" });
+    } catch {
+      // Logout failed, but we'll log out locally anyway
+    }
+    setIsLoggedIn(false);
+    setDomains([]);
+    setCache([]);
+    setRequests([]);
+  };
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -108,6 +140,14 @@ export default function AdminPage() {
     }
   };
 
+  if (checkingSession) {
+    return (
+      <main className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100 flex items-center justify-center">
+        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+      </main>
+    );
+  }
+
   if (!isLoggedIn) {
     return (
       <main className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100 flex items-center justify-center py-8">
@@ -173,7 +213,7 @@ export default function AdminPage() {
             <ArrowLeft className="w-4 h-4 mr-2" />
             Back to Home
           </Link>
-          <Button variant="outline" size="sm" onClick={() => setIsLoggedIn(false)}>
+          <Button variant="outline" size="sm" onClick={handleLogout}>
             <LogOut className="w-4 h-4 mr-2" />
             Logout
           </Button>

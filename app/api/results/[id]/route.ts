@@ -3,12 +3,21 @@ import { db } from "@/lib/db";
 import { pairingRequests, pairingResults } from "@/lib/schema";
 import { eq } from "drizzle-orm";
 
+const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const { id } = await params;
+    
+    if (!id || id === "undefined" || id === "null" || !UUID_REGEX.test(id)) {
+      return NextResponse.json(
+        { error: "Invalid result ID" },
+        { status: 400 }
+      );
+    }
     
     const results = await db
       .select()

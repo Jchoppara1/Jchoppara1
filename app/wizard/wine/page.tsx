@@ -60,6 +60,12 @@ export default function WineWizard() {
       
       const data = await response.json();
       
+      if (!response.ok || !data.requestId) {
+        console.error("Error:", data.error || "Failed to get pairing results");
+        setLoading(false);
+        return;
+      }
+      
       const params = new URLSearchParams({
         mode: "wine",
         requestId: data.requestId,

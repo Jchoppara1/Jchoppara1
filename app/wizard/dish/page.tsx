@@ -88,6 +88,12 @@ export default function DishWizard() {
       
       const data = await response.json();
       
+      if (!response.ok || !data.requestId) {
+        console.error("Error:", data.error || "Failed to get pairing results");
+        setLoading(false);
+        return;
+      }
+      
       const params = new URLSearchParams({
         mode: "dish",
         requestId: data.requestId,

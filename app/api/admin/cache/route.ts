@@ -2,9 +2,15 @@ import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { evidenceCache } from "@/lib/schema";
 import { desc } from "drizzle-orm";
+import { verifySession } from "@/lib/auth";
 
 export async function GET() {
   try {
+    const session = await verifySession();
+    if (!session) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
     const cache = await db
       .select()
       .from(evidenceCache)
@@ -19,6 +25,11 @@ export async function GET() {
 
 export async function DELETE() {
   try {
+    const session = await verifySession();
+    if (!session) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
     await db.delete(evidenceCache);
     return NextResponse.json({ success: true });
   } catch (error) {

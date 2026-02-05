@@ -3,6 +3,7 @@ import { db } from "@/lib/db";
 import { adminUsers } from "@/lib/schema";
 import { eq } from "drizzle-orm";
 import bcrypt from "bcryptjs";
+import { createSession } from "@/lib/auth";
 
 export async function POST(request: NextRequest) {
   try {
@@ -37,6 +38,8 @@ export async function POST(request: NextRequest) {
         { status: 401 }
       );
     }
+
+    await createSession(admin.id, admin.email);
 
     return NextResponse.json({ success: true });
   } catch (error) {
