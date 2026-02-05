@@ -1,0 +1,73 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Wine {
+  id          String   @id @default(uuid())
+  name        String
+  grape       String
+  category    String
+  origin      String
+  price       Int
+  notes       String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Food {
+  id          String   @id @default(uuid())
+  name        String
+  category    String
+  price       Int
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model EvidenceCache {
+  id          String   @id @default(uuid())
+  queryKey    String
+  mode        String
+  inputsHash  String
+  items       Json
+  createdAt   DateTime @default(now())
+  expiresAt   DateTime
+  
+  @@unique([queryKey, mode, inputsHash])
+}
+
+model PairingRequest {
+  id          String   @id @default(uuid())
+  mode        String
+  inputs      Json
+  createdAt   DateTime @default(now())
+  results     PairingResult[]
+}
+
+model PairingResult {
+  id          String   @id @default(uuid())
+  requestId   String
+  request     PairingRequest @relation(fields: [requestId], references: [id])
+  results     Json
+  confidence  Int
+  createdAt   DateTime @default(now())
+}
+
+model AdminUser {
+  id           String   @id @default(uuid())
+  email        String   @unique
+  passwordHash String
+  createdAt    DateTime @default(now())
+}
+
+model SourceDomain {
+  id       String   @id @default(uuid())
+  domain   String   @unique
+  tier     String
+  weight   Float
+  enabled  Boolean  @default(true)
+}
