@@ -90,6 +90,39 @@ export async function registerRoutes(
     }
   });
 
+  // Wines by glass endpoints
+  app.get("/api/wines-by-glass", async (req, res) => {
+    try {
+      const filters = wineFiltersSchema.parse({
+        search: req.query.search || undefined,
+        wineType: req.query.wineType || undefined,
+        priceCategory: req.query.priceCategory || undefined,
+        foodPairing: req.query.foodPairing || undefined,
+      });
+      
+      const wines = await storage.listWinesByGlass(filters);
+      res.json(wines);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        res.status(400).json({ error: "Invalid filter parameters", details: error.errors });
+      } else {
+        res.status(500).json({ error: "Failed to fetch wines by glass" });
+      }
+    }
+  });
+
+  app.get("/api/wines-by-glass/:id", async (req, res) => {
+    try {
+      const wine = await storage.getWineByGlass(req.params.id);
+      if (!wine) {
+        return res.status(404).json({ error: "Wine not found" });
+      }
+      res.json(wine);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch wine by glass" });
+    }
+  });
+
   // Food endpoints
   app.get("/api/foods", async (req, res) => {
     try {

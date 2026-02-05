@@ -39,11 +39,15 @@ export default function FoodDetail() {
     enabled: !!foodId,
   });
 
-  const { data: wines, isLoading: winesLoading } = useQuery<WineType[]>({
+  const { data: bottleWines, isLoading: bottleWinesLoading } = useQuery<WineType[]>({
     queryKey: ["/api/wines"],
   });
 
-  const isLoading = foodLoading || winesLoading;
+  const { data: glassWines, isLoading: glassWinesLoading } = useQuery<WineType[]>({
+    queryKey: ["/api/wines-by-glass"],
+  });
+
+  const isLoading = foodLoading || bottleWinesLoading || glassWinesLoading;
 
   if (isLoading) {
     return (
@@ -68,7 +72,8 @@ export default function FoodDetail() {
     );
   }
 
-  const winePairings = wines ? getWinePairingsForFood(food, wines) : [];
+  const bottlePairings = bottleWines ? getWinePairingsForFood(food, bottleWines) : [];
+  const glassPairings = glassWines ? getWinePairingsForFood(food, glassWines) : [];
   const priceDisplay = `$${(food.priceCents / 100).toFixed(0)}`;
 
   return (
@@ -113,55 +118,111 @@ export default function FoodDetail() {
           <h2 className="text-xl font-semibold">Recommended Wine Pairings</h2>
         </div>
 
-        {winePairings.length > 0 ? (
-          <div className="grid gap-4">
-            {winePairings.map(({ wine, note }) => (
-              <Link key={wine.id} href={`/?highlight=${wine.id}`}>
-                <Card 
-                  className="hover-elevate cursor-pointer"
-                  data-testid={`card-wine-pairing-${wine.id}`}
-                >
-                  <CardContent className="p-4">
-                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                      <div className="space-y-2">
-                        <div className="flex items-center gap-2 flex-wrap">
-                          <h3 
-                            className="font-semibold"
-                            data-testid={`text-wine-pairing-name-${wine.id}`}
-                          >
-                            {wine.name}
-                          </h3>
-                          <Badge 
-                            className={wineTypeColors[wine.wineType]}
-                            data-testid={`badge-wine-type-${wine.id}`}
-                          >
-                            {wine.wineType}
-                          </Badge>
-                          <Badge 
-                            className={priceCategoryColors[wine.priceCategory]}
-                            data-testid={`badge-wine-price-${wine.id}`}
-                          >
-                            {wine.priceCategory}
-                          </Badge>
-                        </div>
-                        <p 
-                          className="text-sm text-muted-foreground"
-                          data-testid={`text-pairing-note-${wine.id}`}
-                        >
-                          {note}
-                        </p>
-                      </div>
-                      <div 
-                        className="text-lg font-semibold shrink-0"
-                        data-testid={`text-wine-price-${wine.id}`}
+        {(bottlePairings.length > 0 || glassPairings.length > 0) ? (
+          <div className="space-y-6">
+            {glassPairings.length > 0 && (
+              <div className="space-y-3">
+                <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wide">By the Glass</h3>
+                <div className="grid gap-3">
+                  {glassPairings.slice(0, 3).map(({ wine, note }) => (
+                    <Link key={wine.id} href="/?view=glass">
+                      <Card 
+                        className="hover-elevate cursor-pointer"
+                        data-testid={`card-glass-pairing-${wine.id}`}
                       >
-                        ${(wine.priceCents / 100).toFixed(0)}
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              </Link>
-            ))}
+                        <CardContent className="p-4">
+                          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                            <div className="space-y-2">
+                              <div className="flex items-center gap-2 flex-wrap">
+                                <h3 
+                                  className="font-semibold"
+                                  data-testid={`text-glass-pairing-name-${wine.id}`}
+                                >
+                                  {wine.name}
+                                </h3>
+                                <Badge 
+                                  className={wineTypeColors[wine.wineType]}
+                                  data-testid={`badge-glass-type-${wine.id}`}
+                                >
+                                  {wine.wineType}
+                                </Badge>
+                                <Badge variant="outline" className="text-xs">
+                                  Glass
+                                </Badge>
+                              </div>
+                              <p 
+                                className="text-sm text-muted-foreground"
+                                data-testid={`text-glass-note-${wine.id}`}
+                              >
+                                {note}
+                              </p>
+                            </div>
+                            <div 
+                              className="text-lg font-semibold shrink-0"
+                              data-testid={`text-glass-price-${wine.id}`}
+                            >
+                              ${(wine.priceCents / 100).toFixed(0)}
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    </Link>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {bottlePairings.length > 0 && (
+              <div className="space-y-3">
+                <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wide">By the Bottle</h3>
+                <div className="grid gap-3">
+                  {bottlePairings.slice(0, 3).map(({ wine, note }) => (
+                    <Link key={wine.id} href="/?view=bottle">
+                      <Card 
+                        className="hover-elevate cursor-pointer"
+                        data-testid={`card-bottle-pairing-${wine.id}`}
+                      >
+                        <CardContent className="p-4">
+                          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                            <div className="space-y-2">
+                              <div className="flex items-center gap-2 flex-wrap">
+                                <h3 
+                                  className="font-semibold"
+                                  data-testid={`text-bottle-pairing-name-${wine.id}`}
+                                >
+                                  {wine.name}
+                                </h3>
+                                <Badge 
+                                  className={wineTypeColors[wine.wineType]}
+                                  data-testid={`badge-bottle-type-${wine.id}`}
+                                >
+                                  {wine.wineType}
+                                </Badge>
+                                <Badge variant="outline" className="text-xs">
+                                  Bottle
+                                </Badge>
+                              </div>
+                              <p 
+                                className="text-sm text-muted-foreground"
+                                data-testid={`text-bottle-note-${wine.id}`}
+                              >
+                                {note}
+                              </p>
+                            </div>
+                            <div 
+                              className="text-lg font-semibold shrink-0"
+                              data-testid={`text-bottle-price-${wine.id}`}
+                            >
+                              ${(wine.priceCents / 100).toFixed(0)}
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    </Link>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         ) : (
           <Card>

@@ -9,9 +9,10 @@ import { UtensilsCrossed } from "lucide-react";
 interface WineFoodPairingsProps {
   wine: Wine;
   maxItems?: number;
+  isGlassWine?: boolean;
 }
 
-export function WineFoodPairings({ wine, maxItems = 3 }: WineFoodPairingsProps) {
+export function WineFoodPairings({ wine, maxItems = 3, isGlassWine = false }: WineFoodPairingsProps) {
   const { data: foods } = useQuery<Food[]>({
     queryKey: ["/api/foods"],
   });

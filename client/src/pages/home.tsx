@@ -479,16 +479,26 @@ function EmptyState({ hasFilters }: { hasFilters: boolean }) {
   );
 }
 
+type WineViewMode = "bottle" | "glass";
+
 export default function Home() {
   const { toast } = useToast();
   const [filters, setFilters] = useState<WineFilters>({});
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingWine, setEditingWine] = useState<Wine | null>(null);
   const [showMobileFilters, setShowMobileFilters] = useState(false);
+  const [viewMode, setViewMode] = useState<WineViewMode>("bottle");
 
-  const { data: wines, isLoading } = useQuery<Wine[]>({
+  const { data: bottleWines, isLoading: bottleLoading } = useQuery<Wine[]>({
     queryKey: ["/api/wines"],
   });
+
+  const { data: glassWines, isLoading: glassLoading } = useQuery<Wine[]>({
+    queryKey: ["/api/wines-by-glass"],
+  });
+
+  const wines = viewMode === "bottle" ? bottleWines : glassWines;
+  const isLoading = viewMode === "bottle" ? bottleLoading : glassLoading;
 
   const filteredWines = useMemo(() => {
     if (!wines) return [];
@@ -588,6 +598,26 @@ export default function Home() {
             <h1 className="text-xl font-bold tracking-tight">Wine List</h1>
           </div>
           <div className="flex items-center gap-2">
+            <div className="flex items-center border rounded-md overflow-hidden">
+              <Button
+                variant={viewMode === "bottle" ? "default" : "ghost"}
+                size="sm"
+                className="rounded-none border-0"
+                onClick={() => setViewMode("bottle")}
+                data-testid="button-view-bottle"
+              >
+                By the Bottle
+              </Button>
+              <Button
+                variant={viewMode === "glass" ? "default" : "ghost"}
+                size="sm"
+                className="rounded-none border-0"
+                onClick={() => setViewMode("glass")}
+                data-testid="button-view-glass"
+              >
+                By the Glass
+              </Button>
+            </div>
             <Button
               variant="outline"
               size="sm"
@@ -603,10 +633,12 @@ export default function Home() {
                 </Badge>
               )}
             </Button>
-            <Button onClick={() => setIsFormOpen(true)} data-testid="button-add-wine">
-              <Plus className="h-4 w-4 mr-2" />
-              Add Wine
-            </Button>
+            {viewMode === "bottle" && (
+              <Button onClick={() => setIsFormOpen(true)} data-testid="button-add-wine">
+                <Plus className="h-4 w-4 mr-2" />
+                Add Wine
+              </Button>
+            )}
           </div>
         </div>
       </header>

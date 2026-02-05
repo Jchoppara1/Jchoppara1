@@ -16,6 +16,9 @@ export interface IStorage {
   updateWine(id: string, wine: Partial<InsertWine>): Promise<Wine | undefined>;
   deleteWine(id: string): Promise<boolean>;
 
+  listWinesByGlass(filters?: WineFilters): Promise<Wine[]>;
+  getWineByGlass(id: string): Promise<Wine | undefined>;
+
   listFoods(filters?: FoodFilters): Promise<Food[]>;
   getFood(id: string): Promise<Food | undefined>;
 }
@@ -99,6 +102,28 @@ function mapCategoryToFoodCategory(category: string): FoodCategory {
   return "Meats & Seafood"; // Default fallback
 }
 
+function loadWinesByGlassFromCSV(): Omit<InsertWine, "id">[] {
+  const csvPath = path.join(process.cwd(), 'attached_assets', 'wines_by_glass.csv');
+  
+  if (!fs.existsSync(csvPath)) {
+    console.warn(`CSV file not found at ${csvPath}, using empty glass wine list`);
+    return [];
+  }
+  
+  const content = fs.readFileSync(csvPath, 'utf-8');
+  const records = parseCSV(content);
+  
+  return records.map(record => ({
+    name: record.name || 'Unknown Wine',
+    wineType: mapCategoryToWineType(record.wineType),
+    varietal: record.varietal || 'Unknown',
+    priceCents: parseInt(record.priceCents || '0', 10),
+    description: record.origin 
+      ? `${record.description || ''} (${record.origin})`
+      : record.description || undefined,
+  }));
+}
+
 function loadFoodsFromCSV(): Omit<InsertFood, "id">[] {
   const csvPath = path.join(process.cwd(), 'delbarcsv', 'food_menu.csv');
   
@@ -120,13 +145,16 @@ function loadFoodsFromCSV(): Omit<InsertFood, "id">[] {
 export class MemStorage implements IStorage {
   private users: Map<string, User>;
   private wines: Map<string, Wine>;
+  private winesByGlass: Map<string, Wine>;
   private foods: Map<string, Food>;
 
   constructor() {
     this.users = new Map();
     this.wines = new Map();
+    this.winesByGlass = new Map();
     this.foods = new Map();
     this.seedWines();
+    this.seedWinesByGlass();
     this.seedFoods();
   }
 
@@ -257,6 +285,65 @@ export class MemStorage implements IStorage {
 
   async deleteWine(id: string): Promise<boolean> {
     return this.wines.delete(id);
+  }
+
+  private seedWinesByGlass() {
+    const wines = loadWinesByGlassFromCSV();
+    console.log(`Loaded ${wines.length} wines by glass from CSV`);
+    
+    for (const wine of wines) {
+      const id = randomUUID();
+      const computed = applyComputedFields({
+        wineType: wine.wineType as any,
+        varietal: wine.varietal,
+        priceCents: wine.priceCents,
+      });
+      
+      this.winesByGlass.set(id, {
+        id,
+        name: wine.name,
+        wineType: wine.wineType,
+        varietal: wine.varietal,
+        priceCents: wine.priceCents,
+        description: wine.description || null,
+        priceCategory: computed.priceCategory,
+        foodPairings: computed.foodPairings,
+      });
+    }
+  }
+
+  async listWinesByGlass(filters?: WineFilters): Promise<Wine[]> {
+    let wines = Array.from(this.winesByGlass.values());
+    
+    if (filters?.search) {
+      const search = filters.search.toLowerCase();
+      wines = wines.filter(
+        (wine) =>
+          wine.name.toLowerCase().includes(search) ||
+          wine.varietal.toLowerCase().includes(search) ||
+          wine.description?.toLowerCase().includes(search)
+      );
+    }
+    
+    if (filters?.wineType) {
+      wines = wines.filter((wine) => wine.wineType === filters.wineType);
+    }
+    
+    if (filters?.priceCategory) {
+      wines = wines.filter((wine) => wine.priceCategory === filters.priceCategory);
+    }
+    
+    if (filters?.foodPairing) {
+      wines = wines.filter((wine) => 
+        wine.foodPairings.includes(filters.foodPairing!)
+      );
+    }
+    
+    return wines.sort((a, b) => a.name.localeCompare(b.name));
+  }
+
+  async getWineByGlass(id: string): Promise<Wine | undefined> {
+    return this.winesByGlass.get(id);
   }
 
   private seedFoods() {
