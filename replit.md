@@ -1,15 +1,14 @@
-# Wine Pairing Wizard
+# Wine List Manager
 
 ## Overview
 
-An AI-enhanced wine and food pairing recommendation application. The app features:
-- Two pairing modes: "I have a dish" (finds wines) and "I have a wine" (finds foods)
-- Deterministic pairing rules engine based on protein, flavor, cooking method
-- Web search evidence integration via Serper API for expert sommelier sources
-- Admin panel for managing source domains, evidence cache, and viewing pairing logs
-- 66 wines and 37 Middle Eastern dishes loaded from CSV files
+A restaurant wine catalog management application that allows staff to organize, filter, and display wine collections. The app features:
+- Automatic food pairing suggestions based on wine type and varietal
+- Automatic price categorization ($, $$, $$$, $$$$)
+- Complete food menu system with 37 Middle Eastern dishes across 4 categories
+- Bidirectional wine/food pairing recommendations
 
-Built as a full-stack TypeScript application with Next.js App Router.
+Built as a full-stack TypeScript application with a React frontend and Express backend.
 
 ## User Preferences
 
@@ -18,108 +17,77 @@ Preferred communication style: Simple, everyday language.
 ## System Architecture
 
 ### Frontend Architecture
-- **Framework**: Next.js 16 with App Router
-- **Language**: TypeScript
-- **UI Components**: Custom components built on Radix UI primitives
-- **Styling**: Tailwind CSS with custom design tokens (wine-themed rose/purple colors)
-- **Icons**: Lucide React
+- **Framework**: React with TypeScript
+- **Routing**: Wouter (lightweight React router)
+- **State Management**: TanStack React Query for server state
+- **UI Components**: shadcn/ui component library built on Radix UI primitives
+- **Styling**: Tailwind CSS with custom design tokens defined in CSS variables
+- **Form Handling**: React Hook Form with Zod validation
+- **Build Tool**: Vite with custom path aliases (@/, @shared/, @assets/)
 
 ### Backend Architecture
-- **Runtime**: Node.js with Next.js API routes
-- **Language**: TypeScript
+- **Runtime**: Node.js with Express
+- **Language**: TypeScript (using tsx for development)
 - **API Design**: RESTful endpoints under /api prefix
-- **Rate Limiting**: 20 requests per minute per IP
+- **Data Validation**: Zod schemas shared between frontend and backend
 
 ### Data Layer
 - **ORM**: Drizzle ORM with PostgreSQL dialect
-- **Schema Location**: lib/schema.ts
-- **Database**: PostgreSQL (Replit-managed)
+- **Schema Location**: shared/schema.ts (shared between client and server)
+- **Migrations**: Drizzle Kit with migrations output to ./migrations
+- **Current Storage**: In-memory storage implementation with interface for future database integration
 
 ### Business Logic
-- **Pairing Rules**: lib/pairingRules.ts - protein/flavor/cooking method matching
-- **Evidence Engine**: lib/evidenceEngine.ts - Serper API integration with tier-based source weighting
-- **Confidence Scoring**: Rule score (50-100) + evidence boost (up to 30) = final confidence
+- **Wine Rules**: Automatic derivation of food pairings based on wine type and varietal
+- **Price Categories**: Automatic categorization ($, $$, $$$, $$$$) based on price in cents
+- **Computed Fields**: Applied server-side before storage using shared/wineRules.ts
+
+### Build System
+- **Development**: Vite dev server with HMR, proxied through Express
+- **Production**: 
+  - Client: Vite builds to dist/public
+  - Server: esbuild bundles to dist/index.cjs with dependency bundling for faster cold starts
+  - Selected dependencies are bundled to reduce syscalls
 
 ### Project Structure
 ```
-app/                    # Next.js App Router pages
-  page.tsx              # Home page with mode selection
-  wizard/dish/page.tsx  # 3-step dish wizard
-  wizard/wine/page.tsx  # 2-step wine wizard
-  results/page.tsx      # Pairing results display
-  admin/page.tsx        # Admin panel
-  api/                  # API routes
-    wines/route.ts      # GET wines list
-    foods/route.ts      # GET foods list
-    pair/route.ts       # POST pairing request
-    results/[id]/route.ts # GET pairing results
-    admin/              # Admin API routes
-components/ui/          # UI components (Button, Card, Input, etc.)
-lib/
-  db.ts                 # Drizzle database connection
-  schema.ts             # Database schema definitions
-  pairingRules.ts       # Wine/food pairing logic
-  evidenceEngine.ts     # Web search integration
-  utils.ts              # Utility functions
-delbarcsv/              # Source CSV data files
-  wine_list.csv         # 66 wines
-  food_menu.csv         # 37 dishes
-script/
-  seed.ts               # Database seeding script
+client/           # React frontend
+  src/
+    components/ui/  # shadcn/ui components
+    pages/          # Route components
+    hooks/          # Custom React hooks
+    lib/            # Utilities and query client
+server/           # Express backend
+  routes.ts       # API route definitions
+  storage.ts      # Data storage interface and implementation
+  vite.ts         # Vite integration for development
+shared/           # Shared code between client and server
+  schema.ts       # Wine schema and Zod validators
+  foodSchema.ts   # Food schema with categories and filters
+  wineRules.ts    # Business logic for wine categorization
+  pairingRules.ts # Bidirectional wine/food pairing logic
 ```
 
 ### Routes
-- `/` - Home page with "I have a dish" / "I have a wine" mode selection
-- `/wizard/dish` - 3-step wizard: Basic Info → Flavors → Preferences
-- `/wizard/wine` - 2-step wizard: Wine Selection → Characteristics
-- `/results?requestId=xxx&mode=xxx` - Pairing results with confidence scores
-- `/admin` - Admin panel (login: admin@winewizard.com / admin123)
-
-### API Endpoints
-- `GET /api/wines` - All wines ordered by name
-- `GET /api/foods` - All foods ordered by name
-- `POST /api/pair` - Generate pairings (mode: "dish" or "wine")
-- `GET /api/results/[id]` - Fetch pairing result by request ID
-- `POST /api/admin/login` - Admin authentication
-- `GET /api/admin/domains` - Source domain configuration
-- `PATCH /api/admin/domains/[id]` - Toggle domain enabled status
-- `GET /api/admin/cache` - Evidence cache entries
-- `DELETE /api/admin/cache` - Clear evidence cache
-- `GET /api/admin/requests` - Recent pairing request logs
+- `/` - Wine List with food pairings on cards
+- `/food` - Food Menu with category filtering
+- `/food/:id` - Food Detail with wine recommendations
 
 ### Data Files
-- `delbarcsv/wine_list.csv` - 66 wines with name, grape, category, origin, price, notes
-- `delbarcsv/food_menu.csv` - 37 dishes with name, category, price
+- `attached_assets/wines.csv` - 66 wines loaded at startup
+- `attached_assets/food_menu.csv` - 37 food items loaded at startup
 
-## Environment Variables
+## External Dependencies
 
-### Required
-- `DATABASE_URL` - PostgreSQL connection string (auto-configured by Replit)
+### Database
+- **PostgreSQL**: Configured via DATABASE_URL environment variable
+- **Session Store**: connect-pg-simple for session persistence (available but not currently used)
 
-### Optional
-- `SERPER_API_KEY` - Serper.dev API key for web search evidence (pairings work without it)
-- `ADMIN_EMAIL` - Admin login email (default: admin@winewizard.com)
-- `ADMIN_PASSWORD` - Admin login password (default: admin123)
+### UI Framework
+- **Radix UI**: Full suite of accessible primitives (dialog, select, popover, etc.)
+- **Lucide React**: Icon library
+- **Google Fonts**: Inter font family loaded via CDN
 
-## Pairing Algorithm
-
-1. **Rule-based scoring** (50-100 points):
-   - Protein matching: +20 points for compatible wine/protein pairs
-   - Flavor matching: +10 points per matching flavor note
-   - Cooking method: +10 points for compatible preparation
-   - Wine color preference: +15/-10 points
-   - Heat/spice level: Boosts off-dry wines like Riesling
-
-2. **Evidence boost** (up to 30 points):
-   - Web search for expert sommelier sources
-   - Tier A sources (Guild Somm, Jancis Robinson): +5 points each
-   - Tier B sources: +3 points each
-   - Tier C sources: +1 point each
-
-3. **Final confidence**: min(100, rule_score + evidence_boost)
-
-## Source Domain Tiers
-
-- **Tier A** (weight 1.0): guildsomm.com, jancisrobinson.com, winespectator.com, decanter.com
-- **Tier B** (weight 0.8): wineenthusiast.com, thewinesociety.com, masterclass.com
-- **Tier C** (weight 0.6-0.4): winefolly.com, vivino.com
+### Development Tools
+- **Replit Plugins**: Runtime error overlay, cartographer, dev banner (Replit-specific)
+- **TypeScript**: Strict mode with bundler module resolution
