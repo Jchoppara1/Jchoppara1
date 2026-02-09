@@ -666,6 +666,11 @@ function WineWizard() {
                 })
             });
             const data = await response.json();
+            if (!response.ok || !data.requestId) {
+                console.error("Error:", data.error || "Failed to get pairing results");
+                setLoading(false);
+                return;
+            }
             const params = new URLSearchParams({
                 mode: "wine",
                 requestId: data.requestId
@@ -691,19 +696,19 @@ function WineWizard() {
                                 className: "w-4 h-4 mr-2"
                             }, void 0, false, {
                                 fileName: "[project]/app/wizard/wine/page.tsx",
-                                lineNumber: 79,
+                                lineNumber: 85,
                                 columnNumber: 13
                             }, this),
                             "Back to Home"
                         ]
                     }, void 0, true, {
                         fileName: "[project]/app/wizard/wine/page.tsx",
-                        lineNumber: 78,
+                        lineNumber: 84,
                         columnNumber: 11
                     }, this)
                 }, void 0, false, {
                     fileName: "[project]/app/wizard/wine/page.tsx",
-                    lineNumber: 77,
+                    lineNumber: 83,
                     columnNumber: 9
                 }, this),
                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -715,12 +720,12 @@ function WineWizard() {
                                 className: "w-7 h-7 text-purple-600"
                             }, void 0, false, {
                                 fileName: "[project]/app/wizard/wine/page.tsx",
-                                lineNumber: 86,
+                                lineNumber: 92,
                                 columnNumber: 13
                             }, this)
                         }, void 0, false, {
                             fileName: "[project]/app/wizard/wine/page.tsx",
-                            lineNumber: 85,
+                            lineNumber: 91,
                             columnNumber: 11
                         }, this),
                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("h1", {
@@ -728,7 +733,7 @@ function WineWizard() {
                             children: "Find Food for Your Wine"
                         }, void 0, false, {
                             fileName: "[project]/app/wizard/wine/page.tsx",
-                            lineNumber: 88,
+                            lineNumber: 94,
                             columnNumber: 11
                         }, this),
                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -736,13 +741,13 @@ function WineWizard() {
                             children: "Tell us about your wine and we'll suggest perfect dishes"
                         }, void 0, false, {
                             fileName: "[project]/app/wizard/wine/page.tsx",
-                            lineNumber: 89,
+                            lineNumber: 95,
                             columnNumber: 11
                         }, this)
                     ]
                 }, void 0, true, {
                     fileName: "[project]/app/wizard/wine/page.tsx",
-                    lineNumber: 84,
+                    lineNumber: 90,
                     columnNumber: 9
                 }, this),
                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -760,7 +765,7 @@ function WineWizard() {
                                     ]
                                 }, void 0, true, {
                                     fileName: "[project]/app/wizard/wine/page.tsx",
-                                    lineNumber: 94,
+                                    lineNumber: 100,
                                     columnNumber: 13
                                 }, this),
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
@@ -770,13 +775,13 @@ function WineWizard() {
                                     ]
                                 }, void 0, true, {
                                     fileName: "[project]/app/wizard/wine/page.tsx",
-                                    lineNumber: 95,
+                                    lineNumber: 101,
                                     columnNumber: 13
                                 }, this)
                             ]
                         }, void 0, true, {
                             fileName: "[project]/app/wizard/wine/page.tsx",
-                            lineNumber: 93,
+                            lineNumber: 99,
                             columnNumber: 11
                         }, this),
                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$progress$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Progress"], {
@@ -784,13 +789,13 @@ function WineWizard() {
                             className: "h-2"
                         }, void 0, false, {
                             fileName: "[project]/app/wizard/wine/page.tsx",
-                            lineNumber: 97,
+                            lineNumber: 103,
                             columnNumber: 11
                         }, this)
                     ]
                 }, void 0, true, {
                     fileName: "[project]/app/wizard/wine/page.tsx",
-                    lineNumber: 92,
+                    lineNumber: 98,
                     columnNumber: 9
                 }, this),
                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$card$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Card"], {
@@ -803,12 +808,12 @@ function WineWizard() {
                                 ]
                             }, void 0, true, {
                                 fileName: "[project]/app/wizard/wine/page.tsx",
-                                lineNumber: 102,
+                                lineNumber: 108,
                                 columnNumber: 13
                             }, this)
                         }, void 0, false, {
                             fileName: "[project]/app/wizard/wine/page.tsx",
-                            lineNumber: 101,
+                            lineNumber: 107,
                             columnNumber: 11
                         }, this),
                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$card$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["CardContent"], {
@@ -823,7 +828,7 @@ function WineWizard() {
                                                     children: "Select from Our Wine List"
                                                 }, void 0, false, {
                                                     fileName: "[project]/app/wizard/wine/page.tsx",
-                                                    lineNumber: 111,
+                                                    lineNumber: 117,
                                                     columnNumber: 19
                                                 }, this),
                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$select$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Select"], {
@@ -844,12 +849,12 @@ function WineWizard() {
                                                                 placeholder: "Choose a wine..."
                                                             }, void 0, false, {
                                                                 fileName: "[project]/app/wizard/wine/page.tsx",
-                                                                lineNumber: 125,
+                                                                lineNumber: 131,
                                                                 columnNumber: 23
                                                             }, this)
                                                         }, void 0, false, {
                                                             fileName: "[project]/app/wizard/wine/page.tsx",
-                                                            lineNumber: 124,
+                                                            lineNumber: 130,
                                                             columnNumber: 21
                                                         }, this),
                                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$select$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["SelectContent"], {
@@ -863,24 +868,24 @@ function WineWizard() {
                                                                     ]
                                                                 }, wine.id, true, {
                                                                     fileName: "[project]/app/wizard/wine/page.tsx",
-                                                                    lineNumber: 129,
+                                                                    lineNumber: 135,
                                                                     columnNumber: 25
                                                                 }, this))
                                                         }, void 0, false, {
                                                             fileName: "[project]/app/wizard/wine/page.tsx",
-                                                            lineNumber: 127,
+                                                            lineNumber: 133,
                                                             columnNumber: 21
                                                         }, this)
                                                     ]
                                                 }, void 0, true, {
                                                     fileName: "[project]/app/wizard/wine/page.tsx",
-                                                    lineNumber: 112,
+                                                    lineNumber: 118,
                                                     columnNumber: 19
                                                 }, this)
                                             ]
                                         }, void 0, true, {
                                             fileName: "[project]/app/wizard/wine/page.tsx",
-                                            lineNumber: 110,
+                                            lineNumber: 116,
                                             columnNumber: 17
                                         }, this),
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -888,7 +893,7 @@ function WineWizard() {
                                             children: "— or —"
                                         }, void 0, false, {
                                             fileName: "[project]/app/wizard/wine/page.tsx",
-                                            lineNumber: 137,
+                                            lineNumber: 143,
                                             columnNumber: 17
                                         }, this),
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -899,7 +904,7 @@ function WineWizard() {
                                                     children: "Enter Wine Name"
                                                 }, void 0, false, {
                                                     fileName: "[project]/app/wizard/wine/page.tsx",
-                                                    lineNumber: 140,
+                                                    lineNumber: 146,
                                                     columnNumber: 19
                                                 }, this),
                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$input$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Input"], {
@@ -913,13 +918,13 @@ function WineWizard() {
                                                     "data-testid": "input-wine-name"
                                                 }, void 0, false, {
                                                     fileName: "[project]/app/wizard/wine/page.tsx",
-                                                    lineNumber: 141,
+                                                    lineNumber: 147,
                                                     columnNumber: 19
                                                 }, this)
                                             ]
                                         }, void 0, true, {
                                             fileName: "[project]/app/wizard/wine/page.tsx",
-                                            lineNumber: 139,
+                                            lineNumber: 145,
                                             columnNumber: 17
                                         }, this),
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -930,7 +935,7 @@ function WineWizard() {
                                                     children: "Grape Varietal"
                                                 }, void 0, false, {
                                                     fileName: "[project]/app/wizard/wine/page.tsx",
-                                                    lineNumber: 151,
+                                                    lineNumber: 157,
                                                     columnNumber: 19
                                                 }, this),
                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$input$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Input"], {
@@ -944,13 +949,13 @@ function WineWizard() {
                                                     "data-testid": "input-varietal"
                                                 }, void 0, false, {
                                                     fileName: "[project]/app/wizard/wine/page.tsx",
-                                                    lineNumber: 152,
+                                                    lineNumber: 158,
                                                     columnNumber: 19
                                                 }, this)
                                             ]
                                         }, void 0, true, {
                                             fileName: "[project]/app/wizard/wine/page.tsx",
-                                            lineNumber: 150,
+                                            lineNumber: 156,
                                             columnNumber: 17
                                         }, this),
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -961,7 +966,7 @@ function WineWizard() {
                                                     children: "Region (optional)"
                                                 }, void 0, false, {
                                                     fileName: "[project]/app/wizard/wine/page.tsx",
-                                                    lineNumber: 162,
+                                                    lineNumber: 168,
                                                     columnNumber: 19
                                                 }, this),
                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$input$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Input"], {
@@ -975,13 +980,13 @@ function WineWizard() {
                                                     "data-testid": "input-region"
                                                 }, void 0, false, {
                                                     fileName: "[project]/app/wizard/wine/page.tsx",
-                                                    lineNumber: 163,
+                                                    lineNumber: 169,
                                                     columnNumber: 19
                                                 }, this)
                                             ]
                                         }, void 0, true, {
                                             fileName: "[project]/app/wizard/wine/page.tsx",
-                                            lineNumber: 161,
+                                            lineNumber: 167,
                                             columnNumber: 17
                                         }, this)
                                     ]
@@ -998,7 +1003,7 @@ function WineWizard() {
                                                     ]
                                                 }, void 0, true, {
                                                     fileName: "[project]/app/wizard/wine/page.tsx",
-                                                    lineNumber: 177,
+                                                    lineNumber: 183,
                                                     columnNumber: 19
                                                 }, this),
                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$slider$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Slider"], {
@@ -1014,7 +1019,7 @@ function WineWizard() {
                                                     "data-testid": "slider-sweetness"
                                                 }, void 0, false, {
                                                     fileName: "[project]/app/wizard/wine/page.tsx",
-                                                    lineNumber: 178,
+                                                    lineNumber: 184,
                                                     columnNumber: 19
                                                 }, this),
                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -1024,26 +1029,26 @@ function WineWizard() {
                                                             children: "Bone Dry"
                                                         }, void 0, false, {
                                                             fileName: "[project]/app/wizard/wine/page.tsx",
-                                                            lineNumber: 186,
+                                                            lineNumber: 192,
                                                             columnNumber: 21
                                                         }, this),
                                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
                                                             children: "Sweet"
                                                         }, void 0, false, {
                                                             fileName: "[project]/app/wizard/wine/page.tsx",
-                                                            lineNumber: 187,
+                                                            lineNumber: 193,
                                                             columnNumber: 21
                                                         }, this)
                                                     ]
                                                 }, void 0, true, {
                                                     fileName: "[project]/app/wizard/wine/page.tsx",
-                                                    lineNumber: 185,
+                                                    lineNumber: 191,
                                                     columnNumber: 19
                                                 }, this)
                                             ]
                                         }, void 0, true, {
                                             fileName: "[project]/app/wizard/wine/page.tsx",
-                                            lineNumber: 176,
+                                            lineNumber: 182,
                                             columnNumber: 17
                                         }, this),
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -1056,7 +1061,7 @@ function WineWizard() {
                                                     ]
                                                 }, void 0, true, {
                                                     fileName: "[project]/app/wizard/wine/page.tsx",
-                                                    lineNumber: 192,
+                                                    lineNumber: 198,
                                                     columnNumber: 19
                                                 }, this),
                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$slider$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Slider"], {
@@ -1072,7 +1077,7 @@ function WineWizard() {
                                                     "data-testid": "slider-body"
                                                 }, void 0, false, {
                                                     fileName: "[project]/app/wizard/wine/page.tsx",
-                                                    lineNumber: 193,
+                                                    lineNumber: 199,
                                                     columnNumber: 19
                                                 }, this),
                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -1082,26 +1087,26 @@ function WineWizard() {
                                                             children: "Light"
                                                         }, void 0, false, {
                                                             fileName: "[project]/app/wizard/wine/page.tsx",
-                                                            lineNumber: 201,
+                                                            lineNumber: 207,
                                                             columnNumber: 21
                                                         }, this),
                                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
                                                             children: "Full"
                                                         }, void 0, false, {
                                                             fileName: "[project]/app/wizard/wine/page.tsx",
-                                                            lineNumber: 202,
+                                                            lineNumber: 208,
                                                             columnNumber: 21
                                                         }, this)
                                                     ]
                                                 }, void 0, true, {
                                                     fileName: "[project]/app/wizard/wine/page.tsx",
-                                                    lineNumber: 200,
+                                                    lineNumber: 206,
                                                     columnNumber: 19
                                                 }, this)
                                             ]
                                         }, void 0, true, {
                                             fileName: "[project]/app/wizard/wine/page.tsx",
-                                            lineNumber: 191,
+                                            lineNumber: 197,
                                             columnNumber: 17
                                         }, this),
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -1114,7 +1119,7 @@ function WineWizard() {
                                                     ]
                                                 }, void 0, true, {
                                                     fileName: "[project]/app/wizard/wine/page.tsx",
-                                                    lineNumber: 207,
+                                                    lineNumber: 213,
                                                     columnNumber: 19
                                                 }, this),
                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$slider$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Slider"], {
@@ -1130,7 +1135,7 @@ function WineWizard() {
                                                     "data-testid": "slider-tannin"
                                                 }, void 0, false, {
                                                     fileName: "[project]/app/wizard/wine/page.tsx",
-                                                    lineNumber: 208,
+                                                    lineNumber: 214,
                                                     columnNumber: 19
                                                 }, this),
                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -1140,26 +1145,26 @@ function WineWizard() {
                                                             children: "Low"
                                                         }, void 0, false, {
                                                             fileName: "[project]/app/wizard/wine/page.tsx",
-                                                            lineNumber: 216,
+                                                            lineNumber: 222,
                                                             columnNumber: 21
                                                         }, this),
                                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
                                                             children: "High"
                                                         }, void 0, false, {
                                                             fileName: "[project]/app/wizard/wine/page.tsx",
-                                                            lineNumber: 217,
+                                                            lineNumber: 223,
                                                             columnNumber: 21
                                                         }, this)
                                                     ]
                                                 }, void 0, true, {
                                                     fileName: "[project]/app/wizard/wine/page.tsx",
-                                                    lineNumber: 215,
+                                                    lineNumber: 221,
                                                     columnNumber: 19
                                                 }, this)
                                             ]
                                         }, void 0, true, {
                                             fileName: "[project]/app/wizard/wine/page.tsx",
-                                            lineNumber: 206,
+                                            lineNumber: 212,
                                             columnNumber: 17
                                         }, this),
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -1172,7 +1177,7 @@ function WineWizard() {
                                                     ]
                                                 }, void 0, true, {
                                                     fileName: "[project]/app/wizard/wine/page.tsx",
-                                                    lineNumber: 222,
+                                                    lineNumber: 228,
                                                     columnNumber: 19
                                                 }, this),
                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$slider$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Slider"], {
@@ -1188,7 +1193,7 @@ function WineWizard() {
                                                     "data-testid": "slider-acidity"
                                                 }, void 0, false, {
                                                     fileName: "[project]/app/wizard/wine/page.tsx",
-                                                    lineNumber: 223,
+                                                    lineNumber: 229,
                                                     columnNumber: 19
                                                 }, this),
                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -1198,26 +1203,26 @@ function WineWizard() {
                                                             children: "Low"
                                                         }, void 0, false, {
                                                             fileName: "[project]/app/wizard/wine/page.tsx",
-                                                            lineNumber: 231,
+                                                            lineNumber: 237,
                                                             columnNumber: 21
                                                         }, this),
                                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
                                                             children: "High"
                                                         }, void 0, false, {
                                                             fileName: "[project]/app/wizard/wine/page.tsx",
-                                                            lineNumber: 232,
+                                                            lineNumber: 238,
                                                             columnNumber: 21
                                                         }, this)
                                                     ]
                                                 }, void 0, true, {
                                                     fileName: "[project]/app/wizard/wine/page.tsx",
-                                                    lineNumber: 230,
+                                                    lineNumber: 236,
                                                     columnNumber: 19
                                                 }, this)
                                             ]
                                         }, void 0, true, {
                                             fileName: "[project]/app/wizard/wine/page.tsx",
-                                            lineNumber: 221,
+                                            lineNumber: 227,
                                             columnNumber: 17
                                         }, this),
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -1228,7 +1233,7 @@ function WineWizard() {
                                                     children: "Summary"
                                                 }, void 0, false, {
                                                     fileName: "[project]/app/wizard/wine/page.tsx",
-                                                    lineNumber: 237,
+                                                    lineNumber: 243,
                                                     columnNumber: 19
                                                 }, this),
                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -1240,7 +1245,7 @@ function WineWizard() {
                                                                     children: "Wine:"
                                                                 }, void 0, false, {
                                                                     fileName: "[project]/app/wizard/wine/page.tsx",
-                                                                    lineNumber: 239,
+                                                                    lineNumber: 245,
                                                                     columnNumber: 24
                                                                 }, this),
                                                                 " ",
@@ -1248,7 +1253,7 @@ function WineWizard() {
                                                             ]
                                                         }, void 0, true, {
                                                             fileName: "[project]/app/wizard/wine/page.tsx",
-                                                            lineNumber: 239,
+                                                            lineNumber: 245,
                                                             columnNumber: 21
                                                         }, this),
                                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -1257,7 +1262,7 @@ function WineWizard() {
                                                                     children: "Varietal:"
                                                                 }, void 0, false, {
                                                                     fileName: "[project]/app/wizard/wine/page.tsx",
-                                                                    lineNumber: 240,
+                                                                    lineNumber: 246,
                                                                     columnNumber: 24
                                                                 }, this),
                                                                 " ",
@@ -1265,7 +1270,7 @@ function WineWizard() {
                                                             ]
                                                         }, void 0, true, {
                                                             fileName: "[project]/app/wizard/wine/page.tsx",
-                                                            lineNumber: 240,
+                                                            lineNumber: 246,
                                                             columnNumber: 21
                                                         }, this),
                                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -1274,7 +1279,7 @@ function WineWizard() {
                                                                     children: "Region:"
                                                                 }, void 0, false, {
                                                                     fileName: "[project]/app/wizard/wine/page.tsx",
-                                                                    lineNumber: 241,
+                                                                    lineNumber: 247,
                                                                     columnNumber: 24
                                                                 }, this),
                                                                 " ",
@@ -1282,19 +1287,19 @@ function WineWizard() {
                                                             ]
                                                         }, void 0, true, {
                                                             fileName: "[project]/app/wizard/wine/page.tsx",
-                                                            lineNumber: 241,
+                                                            lineNumber: 247,
                                                             columnNumber: 21
                                                         }, this)
                                                     ]
                                                 }, void 0, true, {
                                                     fileName: "[project]/app/wizard/wine/page.tsx",
-                                                    lineNumber: 238,
+                                                    lineNumber: 244,
                                                     columnNumber: 19
                                                 }, this)
                                             ]
                                         }, void 0, true, {
                                             fileName: "[project]/app/wizard/wine/page.tsx",
-                                            lineNumber: 236,
+                                            lineNumber: 242,
                                             columnNumber: 17
                                         }, this)
                                     ]
@@ -1311,14 +1316,14 @@ function WineWizard() {
                                                     className: "w-4 h-4 mr-2"
                                                 }, void 0, false, {
                                                     fileName: "[project]/app/wizard/wine/page.tsx",
-                                                    lineNumber: 253,
+                                                    lineNumber: 259,
                                                     columnNumber: 17
                                                 }, this),
                                                 "Back"
                                             ]
                                         }, void 0, true, {
                                             fileName: "[project]/app/wizard/wine/page.tsx",
-                                            lineNumber: 248,
+                                            lineNumber: 254,
                                             columnNumber: 15
                                         }, this),
                                         step < totalSteps ? /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$button$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Button"], {
@@ -1331,13 +1336,13 @@ function WineWizard() {
                                                     className: "w-4 h-4 ml-2"
                                                 }, void 0, false, {
                                                     fileName: "[project]/app/wizard/wine/page.tsx",
-                                                    lineNumber: 264,
+                                                    lineNumber: 270,
                                                     columnNumber: 19
                                                 }, this)
                                             ]
                                         }, void 0, true, {
                                             fileName: "[project]/app/wizard/wine/page.tsx",
-                                            lineNumber: 258,
+                                            lineNumber: 264,
                                             columnNumber: 17
                                         }, this) : /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$button$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Button"], {
                                             onClick: handleSubmit,
@@ -1349,7 +1354,7 @@ function WineWizard() {
                                                         className: "w-4 h-4 mr-2 animate-spin"
                                                     }, void 0, false, {
                                                         fileName: "[project]/app/wizard/wine/page.tsx",
-                                                        lineNumber: 274,
+                                                        lineNumber: 280,
                                                         columnNumber: 23
                                                     }, this),
                                                     "Finding Pairings..."
@@ -1361,43 +1366,43 @@ function WineWizard() {
                                                         className: "w-4 h-4 ml-2"
                                                     }, void 0, false, {
                                                         fileName: "[project]/app/wizard/wine/page.tsx",
-                                                        lineNumber: 280,
+                                                        lineNumber: 286,
                                                         columnNumber: 23
                                                     }, this)
                                                 ]
                                             }, void 0, true)
                                         }, void 0, false, {
                                             fileName: "[project]/app/wizard/wine/page.tsx",
-                                            lineNumber: 267,
+                                            lineNumber: 273,
                                             columnNumber: 17
                                         }, this)
                                     ]
                                 }, void 0, true, {
                                     fileName: "[project]/app/wizard/wine/page.tsx",
-                                    lineNumber: 247,
+                                    lineNumber: 253,
                                     columnNumber: 13
                                 }, this)
                             ]
                         }, void 0, true, {
                             fileName: "[project]/app/wizard/wine/page.tsx",
-                            lineNumber: 107,
+                            lineNumber: 113,
                             columnNumber: 11
                         }, this)
                     ]
                 }, void 0, true, {
                     fileName: "[project]/app/wizard/wine/page.tsx",
-                    lineNumber: 100,
+                    lineNumber: 106,
                     columnNumber: 9
                 }, this)
             ]
         }, void 0, true, {
             fileName: "[project]/app/wizard/wine/page.tsx",
-            lineNumber: 76,
+            lineNumber: 82,
             columnNumber: 7
         }, this)
     }, void 0, false, {
         fileName: "[project]/app/wizard/wine/page.tsx",
-        lineNumber: 75,
+        lineNumber: 81,
         columnNumber: 5
     }, this);
 }

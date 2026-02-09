@@ -811,6 +811,11 @@ function DishWizard() {
                 })
             });
             const data = await response.json();
+            if (!response.ok || !data.requestId) {
+                console.error("Error:", data.error || "Failed to get pairing results");
+                setLoading(false);
+                return;
+            }
             const params = new URLSearchParams({
                 mode: "dish",
                 requestId: data.requestId
@@ -836,19 +841,19 @@ function DishWizard() {
                                 className: "w-4 h-4 mr-2"
                             }, void 0, false, {
                                 fileName: "[project]/app/wizard/dish/page.tsx",
-                                lineNumber: 107,
+                                lineNumber: 113,
                                 columnNumber: 13
                             }, this),
                             "Back to Home"
                         ]
                     }, void 0, true, {
                         fileName: "[project]/app/wizard/dish/page.tsx",
-                        lineNumber: 106,
+                        lineNumber: 112,
                         columnNumber: 11
                     }, this)
                 }, void 0, false, {
                     fileName: "[project]/app/wizard/dish/page.tsx",
-                    lineNumber: 105,
+                    lineNumber: 111,
                     columnNumber: 9
                 }, this),
                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -860,12 +865,12 @@ function DishWizard() {
                                 className: "w-7 h-7 text-orange-600"
                             }, void 0, false, {
                                 fileName: "[project]/app/wizard/dish/page.tsx",
-                                lineNumber: 114,
+                                lineNumber: 120,
                                 columnNumber: 13
                             }, this)
                         }, void 0, false, {
                             fileName: "[project]/app/wizard/dish/page.tsx",
-                            lineNumber: 113,
+                            lineNumber: 119,
                             columnNumber: 11
                         }, this),
                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("h1", {
@@ -873,7 +878,7 @@ function DishWizard() {
                             children: "Find Wine for Your Dish"
                         }, void 0, false, {
                             fileName: "[project]/app/wizard/dish/page.tsx",
-                            lineNumber: 116,
+                            lineNumber: 122,
                             columnNumber: 11
                         }, this),
                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -881,13 +886,13 @@ function DishWizard() {
                             children: "Tell us about your dish and we'll recommend perfect wines"
                         }, void 0, false, {
                             fileName: "[project]/app/wizard/dish/page.tsx",
-                            lineNumber: 117,
+                            lineNumber: 123,
                             columnNumber: 11
                         }, this)
                     ]
                 }, void 0, true, {
                     fileName: "[project]/app/wizard/dish/page.tsx",
-                    lineNumber: 112,
+                    lineNumber: 118,
                     columnNumber: 9
                 }, this),
                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -905,7 +910,7 @@ function DishWizard() {
                                     ]
                                 }, void 0, true, {
                                     fileName: "[project]/app/wizard/dish/page.tsx",
-                                    lineNumber: 122,
+                                    lineNumber: 128,
                                     columnNumber: 13
                                 }, this),
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
@@ -915,13 +920,13 @@ function DishWizard() {
                                     ]
                                 }, void 0, true, {
                                     fileName: "[project]/app/wizard/dish/page.tsx",
-                                    lineNumber: 123,
+                                    lineNumber: 129,
                                     columnNumber: 13
                                 }, this)
                             ]
                         }, void 0, true, {
                             fileName: "[project]/app/wizard/dish/page.tsx",
-                            lineNumber: 121,
+                            lineNumber: 127,
                             columnNumber: 11
                         }, this),
                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$progress$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Progress"], {
@@ -929,13 +934,13 @@ function DishWizard() {
                             className: "h-2"
                         }, void 0, false, {
                             fileName: "[project]/app/wizard/dish/page.tsx",
-                            lineNumber: 125,
+                            lineNumber: 131,
                             columnNumber: 11
                         }, this)
                     ]
                 }, void 0, true, {
                     fileName: "[project]/app/wizard/dish/page.tsx",
-                    lineNumber: 120,
+                    lineNumber: 126,
                     columnNumber: 9
                 }, this),
                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$card$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Card"], {
@@ -949,12 +954,12 @@ function DishWizard() {
                                 ]
                             }, void 0, true, {
                                 fileName: "[project]/app/wizard/dish/page.tsx",
-                                lineNumber: 130,
+                                lineNumber: 136,
                                 columnNumber: 13
                             }, this)
                         }, void 0, false, {
                             fileName: "[project]/app/wizard/dish/page.tsx",
-                            lineNumber: 129,
+                            lineNumber: 135,
                             columnNumber: 11
                         }, this),
                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$card$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["CardContent"], {
@@ -970,7 +975,7 @@ function DishWizard() {
                                                     children: "Dish Name *"
                                                 }, void 0, false, {
                                                     fileName: "[project]/app/wizard/dish/page.tsx",
-                                                    lineNumber: 140,
+                                                    lineNumber: 146,
                                                     columnNumber: 19
                                                 }, this),
                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$input$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Input"], {
@@ -984,13 +989,13 @@ function DishWizard() {
                                                     "data-testid": "input-dish-name"
                                                 }, void 0, false, {
                                                     fileName: "[project]/app/wizard/dish/page.tsx",
-                                                    lineNumber: 141,
+                                                    lineNumber: 147,
                                                     columnNumber: 19
                                                 }, this)
                                             ]
                                         }, void 0, true, {
                                             fileName: "[project]/app/wizard/dish/page.tsx",
-                                            lineNumber: 139,
+                                            lineNumber: 145,
                                             columnNumber: 17
                                         }, this),
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -1000,7 +1005,7 @@ function DishWizard() {
                                                     children: "Primary Protein"
                                                 }, void 0, false, {
                                                     fileName: "[project]/app/wizard/dish/page.tsx",
-                                                    lineNumber: 151,
+                                                    lineNumber: 157,
                                                     columnNumber: 19
                                                 }, this),
                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$select$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Select"], {
@@ -1016,12 +1021,12 @@ function DishWizard() {
                                                                 placeholder: "Select protein..."
                                                             }, void 0, false, {
                                                                 fileName: "[project]/app/wizard/dish/page.tsx",
-                                                                lineNumber: 157,
+                                                                lineNumber: 163,
                                                                 columnNumber: 23
                                                             }, this)
                                                         }, void 0, false, {
                                                             fileName: "[project]/app/wizard/dish/page.tsx",
-                                                            lineNumber: 156,
+                                                            lineNumber: 162,
                                                             columnNumber: 21
                                                         }, this),
                                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$select$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["SelectContent"], {
@@ -1030,24 +1035,24 @@ function DishWizard() {
                                                                     children: p.label
                                                                 }, p.value, false, {
                                                                     fileName: "[project]/app/wizard/dish/page.tsx",
-                                                                    lineNumber: 161,
+                                                                    lineNumber: 167,
                                                                     columnNumber: 25
                                                                 }, this))
                                                         }, void 0, false, {
                                                             fileName: "[project]/app/wizard/dish/page.tsx",
-                                                            lineNumber: 159,
+                                                            lineNumber: 165,
                                                             columnNumber: 21
                                                         }, this)
                                                     ]
                                                 }, void 0, true, {
                                                     fileName: "[project]/app/wizard/dish/page.tsx",
-                                                    lineNumber: 152,
+                                                    lineNumber: 158,
                                                     columnNumber: 19
                                                 }, this)
                                             ]
                                         }, void 0, true, {
                                             fileName: "[project]/app/wizard/dish/page.tsx",
-                                            lineNumber: 150,
+                                            lineNumber: 156,
                                             columnNumber: 17
                                         }, this),
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -1058,7 +1063,7 @@ function DishWizard() {
                                                     children: "Sauce or Style"
                                                 }, void 0, false, {
                                                     fileName: "[project]/app/wizard/dish/page.tsx",
-                                                    lineNumber: 168,
+                                                    lineNumber: 174,
                                                     columnNumber: 19
                                                 }, this),
                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$input$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Input"], {
@@ -1072,13 +1077,13 @@ function DishWizard() {
                                                     "data-testid": "input-sauce"
                                                 }, void 0, false, {
                                                     fileName: "[project]/app/wizard/dish/page.tsx",
-                                                    lineNumber: 169,
+                                                    lineNumber: 175,
                                                     columnNumber: 19
                                                 }, this)
                                             ]
                                         }, void 0, true, {
                                             fileName: "[project]/app/wizard/dish/page.tsx",
-                                            lineNumber: 167,
+                                            lineNumber: 173,
                                             columnNumber: 17
                                         }, this)
                                     ]
@@ -1092,7 +1097,7 @@ function DishWizard() {
                                                     children: "Cooking Method"
                                                 }, void 0, false, {
                                                     fileName: "[project]/app/wizard/dish/page.tsx",
-                                                    lineNumber: 183,
+                                                    lineNumber: 189,
                                                     columnNumber: 19
                                                 }, this),
                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$select$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Select"], {
@@ -1108,12 +1113,12 @@ function DishWizard() {
                                                                 placeholder: "Select method..."
                                                             }, void 0, false, {
                                                                 fileName: "[project]/app/wizard/dish/page.tsx",
-                                                                lineNumber: 189,
+                                                                lineNumber: 195,
                                                                 columnNumber: 23
                                                             }, this)
                                                         }, void 0, false, {
                                                             fileName: "[project]/app/wizard/dish/page.tsx",
-                                                            lineNumber: 188,
+                                                            lineNumber: 194,
                                                             columnNumber: 21
                                                         }, this),
                                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$select$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["SelectContent"], {
@@ -1122,24 +1127,24 @@ function DishWizard() {
                                                                     children: m.label
                                                                 }, m.value, false, {
                                                                     fileName: "[project]/app/wizard/dish/page.tsx",
-                                                                    lineNumber: 193,
+                                                                    lineNumber: 199,
                                                                     columnNumber: 25
                                                                 }, this))
                                                         }, void 0, false, {
                                                             fileName: "[project]/app/wizard/dish/page.tsx",
-                                                            lineNumber: 191,
+                                                            lineNumber: 197,
                                                             columnNumber: 21
                                                         }, this)
                                                     ]
                                                 }, void 0, true, {
                                                     fileName: "[project]/app/wizard/dish/page.tsx",
-                                                    lineNumber: 184,
+                                                    lineNumber: 190,
                                                     columnNumber: 19
                                                 }, this)
                                             ]
                                         }, void 0, true, {
                                             fileName: "[project]/app/wizard/dish/page.tsx",
-                                            lineNumber: 182,
+                                            lineNumber: 188,
                                             columnNumber: 17
                                         }, this),
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -1149,7 +1154,7 @@ function DishWizard() {
                                                     children: "Flavor Notes (select all that apply)"
                                                 }, void 0, false, {
                                                     fileName: "[project]/app/wizard/dish/page.tsx",
-                                                    lineNumber: 200,
+                                                    lineNumber: 206,
                                                     columnNumber: 19
                                                 }, this),
                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -1162,18 +1167,18 @@ function DishWizard() {
                                                             children: flavor
                                                         }, flavor, false, {
                                                             fileName: "[project]/app/wizard/dish/page.tsx",
-                                                            lineNumber: 203,
+                                                            lineNumber: 209,
                                                             columnNumber: 23
                                                         }, this))
                                                 }, void 0, false, {
                                                     fileName: "[project]/app/wizard/dish/page.tsx",
-                                                    lineNumber: 201,
+                                                    lineNumber: 207,
                                                     columnNumber: 19
                                                 }, this)
                                             ]
                                         }, void 0, true, {
                                             fileName: "[project]/app/wizard/dish/page.tsx",
-                                            lineNumber: 199,
+                                            lineNumber: 205,
                                             columnNumber: 17
                                         }, this),
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -1186,7 +1191,7 @@ function DishWizard() {
                                                     ]
                                                 }, void 0, true, {
                                                     fileName: "[project]/app/wizard/dish/page.tsx",
-                                                    lineNumber: 217,
+                                                    lineNumber: 223,
                                                     columnNumber: 19
                                                 }, this),
                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$slider$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Slider"], {
@@ -1202,7 +1207,7 @@ function DishWizard() {
                                                     "data-testid": "slider-heat"
                                                 }, void 0, false, {
                                                     fileName: "[project]/app/wizard/dish/page.tsx",
-                                                    lineNumber: 218,
+                                                    lineNumber: 224,
                                                     columnNumber: 19
                                                 }, this),
                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -1212,26 +1217,26 @@ function DishWizard() {
                                                             children: "Mild"
                                                         }, void 0, false, {
                                                             fileName: "[project]/app/wizard/dish/page.tsx",
-                                                            lineNumber: 226,
+                                                            lineNumber: 232,
                                                             columnNumber: 21
                                                         }, this),
                                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
                                                             children: "Very Spicy"
                                                         }, void 0, false, {
                                                             fileName: "[project]/app/wizard/dish/page.tsx",
-                                                            lineNumber: 227,
+                                                            lineNumber: 233,
                                                             columnNumber: 21
                                                         }, this)
                                                     ]
                                                 }, void 0, true, {
                                                     fileName: "[project]/app/wizard/dish/page.tsx",
-                                                    lineNumber: 225,
+                                                    lineNumber: 231,
                                                     columnNumber: 19
                                                 }, this)
                                             ]
                                         }, void 0, true, {
                                             fileName: "[project]/app/wizard/dish/page.tsx",
-                                            lineNumber: 216,
+                                            lineNumber: 222,
                                             columnNumber: 17
                                         }, this),
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -1244,7 +1249,7 @@ function DishWizard() {
                                                     ]
                                                 }, void 0, true, {
                                                     fileName: "[project]/app/wizard/dish/page.tsx",
-                                                    lineNumber: 232,
+                                                    lineNumber: 238,
                                                     columnNumber: 19
                                                 }, this),
                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$slider$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Slider"], {
@@ -1260,7 +1265,7 @@ function DishWizard() {
                                                     "data-testid": "slider-sweetness"
                                                 }, void 0, false, {
                                                     fileName: "[project]/app/wizard/dish/page.tsx",
-                                                    lineNumber: 233,
+                                                    lineNumber: 239,
                                                     columnNumber: 19
                                                 }, this),
                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -1270,26 +1275,26 @@ function DishWizard() {
                                                             children: "Savory"
                                                         }, void 0, false, {
                                                             fileName: "[project]/app/wizard/dish/page.tsx",
-                                                            lineNumber: 241,
+                                                            lineNumber: 247,
                                                             columnNumber: 21
                                                         }, this),
                                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
                                                             children: "Sweet"
                                                         }, void 0, false, {
                                                             fileName: "[project]/app/wizard/dish/page.tsx",
-                                                            lineNumber: 242,
+                                                            lineNumber: 248,
                                                             columnNumber: 21
                                                         }, this)
                                                     ]
                                                 }, void 0, true, {
                                                     fileName: "[project]/app/wizard/dish/page.tsx",
-                                                    lineNumber: 240,
+                                                    lineNumber: 246,
                                                     columnNumber: 19
                                                 }, this)
                                             ]
                                         }, void 0, true, {
                                             fileName: "[project]/app/wizard/dish/page.tsx",
-                                            lineNumber: 231,
+                                            lineNumber: 237,
                                             columnNumber: 17
                                         }, this)
                                     ]
@@ -1303,7 +1308,7 @@ function DishWizard() {
                                                     children: "Preferred Wine Color"
                                                 }, void 0, false, {
                                                     fileName: "[project]/app/wizard/dish/page.tsx",
-                                                    lineNumber: 251,
+                                                    lineNumber: 257,
                                                     columnNumber: 19
                                                 }, this),
                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$select$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Select"], {
@@ -1317,12 +1322,12 @@ function DishWizard() {
                                                             "data-testid": "select-wine-color",
                                                             children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$select$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["SelectValue"], {}, void 0, false, {
                                                                 fileName: "[project]/app/wizard/dish/page.tsx",
-                                                                lineNumber: 257,
+                                                                lineNumber: 263,
                                                                 columnNumber: 23
                                                             }, this)
                                                         }, void 0, false, {
                                                             fileName: "[project]/app/wizard/dish/page.tsx",
-                                                            lineNumber: 256,
+                                                            lineNumber: 262,
                                                             columnNumber: 21
                                                         }, this),
                                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$select$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["SelectContent"], {
@@ -1331,24 +1336,24 @@ function DishWizard() {
                                                                     children: c.label
                                                                 }, c.value, false, {
                                                                     fileName: "[project]/app/wizard/dish/page.tsx",
-                                                                    lineNumber: 261,
+                                                                    lineNumber: 267,
                                                                     columnNumber: 25
                                                                 }, this))
                                                         }, void 0, false, {
                                                             fileName: "[project]/app/wizard/dish/page.tsx",
-                                                            lineNumber: 259,
+                                                            lineNumber: 265,
                                                             columnNumber: 21
                                                         }, this)
                                                     ]
                                                 }, void 0, true, {
                                                     fileName: "[project]/app/wizard/dish/page.tsx",
-                                                    lineNumber: 252,
+                                                    lineNumber: 258,
                                                     columnNumber: 19
                                                 }, this)
                                             ]
                                         }, void 0, true, {
                                             fileName: "[project]/app/wizard/dish/page.tsx",
-                                            lineNumber: 250,
+                                            lineNumber: 256,
                                             columnNumber: 17
                                         }, this),
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -1359,7 +1364,7 @@ function DishWizard() {
                                                     children: "Budget per Bottle ($)"
                                                 }, void 0, false, {
                                                     fileName: "[project]/app/wizard/dish/page.tsx",
-                                                    lineNumber: 268,
+                                                    lineNumber: 274,
                                                     columnNumber: 19
                                                 }, this),
                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$input$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Input"], {
@@ -1374,13 +1379,13 @@ function DishWizard() {
                                                     "data-testid": "input-budget"
                                                 }, void 0, false, {
                                                     fileName: "[project]/app/wizard/dish/page.tsx",
-                                                    lineNumber: 269,
+                                                    lineNumber: 275,
                                                     columnNumber: 19
                                                 }, this)
                                             ]
                                         }, void 0, true, {
                                             fileName: "[project]/app/wizard/dish/page.tsx",
-                                            lineNumber: 267,
+                                            lineNumber: 273,
                                             columnNumber: 17
                                         }, this),
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -1391,7 +1396,7 @@ function DishWizard() {
                                                     children: "Summary"
                                                 }, void 0, false, {
                                                     fileName: "[project]/app/wizard/dish/page.tsx",
-                                                    lineNumber: 280,
+                                                    lineNumber: 286,
                                                     columnNumber: 19
                                                 }, this),
                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -1403,7 +1408,7 @@ function DishWizard() {
                                                                     children: "Dish:"
                                                                 }, void 0, false, {
                                                                     fileName: "[project]/app/wizard/dish/page.tsx",
-                                                                    lineNumber: 282,
+                                                                    lineNumber: 288,
                                                                     columnNumber: 24
                                                                 }, this),
                                                                 " ",
@@ -1411,7 +1416,7 @@ function DishWizard() {
                                                             ]
                                                         }, void 0, true, {
                                                             fileName: "[project]/app/wizard/dish/page.tsx",
-                                                            lineNumber: 282,
+                                                            lineNumber: 288,
                                                             columnNumber: 21
                                                         }, this),
                                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -1420,7 +1425,7 @@ function DishWizard() {
                                                                     children: "Protein:"
                                                                 }, void 0, false, {
                                                                     fileName: "[project]/app/wizard/dish/page.tsx",
-                                                                    lineNumber: 283,
+                                                                    lineNumber: 289,
                                                                     columnNumber: 24
                                                                 }, this),
                                                                 " ",
@@ -1428,7 +1433,7 @@ function DishWizard() {
                                                             ]
                                                         }, void 0, true, {
                                                             fileName: "[project]/app/wizard/dish/page.tsx",
-                                                            lineNumber: 283,
+                                                            lineNumber: 289,
                                                             columnNumber: 21
                                                         }, this),
                                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -1437,7 +1442,7 @@ function DishWizard() {
                                                                     children: "Cooking:"
                                                                 }, void 0, false, {
                                                                     fileName: "[project]/app/wizard/dish/page.tsx",
-                                                                    lineNumber: 284,
+                                                                    lineNumber: 290,
                                                                     columnNumber: 24
                                                                 }, this),
                                                                 " ",
@@ -1445,7 +1450,7 @@ function DishWizard() {
                                                             ]
                                                         }, void 0, true, {
                                                             fileName: "[project]/app/wizard/dish/page.tsx",
-                                                            lineNumber: 284,
+                                                            lineNumber: 290,
                                                             columnNumber: 21
                                                         }, this),
                                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -1454,7 +1459,7 @@ function DishWizard() {
                                                                     children: "Flavors:"
                                                                 }, void 0, false, {
                                                                     fileName: "[project]/app/wizard/dish/page.tsx",
-                                                                    lineNumber: 285,
+                                                                    lineNumber: 291,
                                                                     columnNumber: 24
                                                                 }, this),
                                                                 " ",
@@ -1462,19 +1467,19 @@ function DishWizard() {
                                                             ]
                                                         }, void 0, true, {
                                                             fileName: "[project]/app/wizard/dish/page.tsx",
-                                                            lineNumber: 285,
+                                                            lineNumber: 291,
                                                             columnNumber: 21
                                                         }, this)
                                                     ]
                                                 }, void 0, true, {
                                                     fileName: "[project]/app/wizard/dish/page.tsx",
-                                                    lineNumber: 281,
+                                                    lineNumber: 287,
                                                     columnNumber: 19
                                                 }, this)
                                             ]
                                         }, void 0, true, {
                                             fileName: "[project]/app/wizard/dish/page.tsx",
-                                            lineNumber: 279,
+                                            lineNumber: 285,
                                             columnNumber: 17
                                         }, this)
                                     ]
@@ -1491,14 +1496,14 @@ function DishWizard() {
                                                     className: "w-4 h-4 mr-2"
                                                 }, void 0, false, {
                                                     fileName: "[project]/app/wizard/dish/page.tsx",
-                                                    lineNumber: 297,
+                                                    lineNumber: 303,
                                                     columnNumber: 17
                                                 }, this),
                                                 "Back"
                                             ]
                                         }, void 0, true, {
                                             fileName: "[project]/app/wizard/dish/page.tsx",
-                                            lineNumber: 292,
+                                            lineNumber: 298,
                                             columnNumber: 15
                                         }, this),
                                         step < totalSteps ? /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$button$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Button"], {
@@ -1511,13 +1516,13 @@ function DishWizard() {
                                                     className: "w-4 h-4 ml-2"
                                                 }, void 0, false, {
                                                     fileName: "[project]/app/wizard/dish/page.tsx",
-                                                    lineNumber: 308,
+                                                    lineNumber: 314,
                                                     columnNumber: 19
                                                 }, this)
                                             ]
                                         }, void 0, true, {
                                             fileName: "[project]/app/wizard/dish/page.tsx",
-                                            lineNumber: 302,
+                                            lineNumber: 308,
                                             columnNumber: 17
                                         }, this) : /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$button$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Button"], {
                                             onClick: handleSubmit,
@@ -1529,7 +1534,7 @@ function DishWizard() {
                                                         className: "w-4 h-4 mr-2 animate-spin"
                                                     }, void 0, false, {
                                                         fileName: "[project]/app/wizard/dish/page.tsx",
-                                                        lineNumber: 318,
+                                                        lineNumber: 324,
                                                         columnNumber: 23
                                                     }, this),
                                                     "Finding Pairings..."
@@ -1541,43 +1546,43 @@ function DishWizard() {
                                                         className: "w-4 h-4 ml-2"
                                                     }, void 0, false, {
                                                         fileName: "[project]/app/wizard/dish/page.tsx",
-                                                        lineNumber: 324,
+                                                        lineNumber: 330,
                                                         columnNumber: 23
                                                     }, this)
                                                 ]
                                             }, void 0, true)
                                         }, void 0, false, {
                                             fileName: "[project]/app/wizard/dish/page.tsx",
-                                            lineNumber: 311,
+                                            lineNumber: 317,
                                             columnNumber: 17
                                         }, this)
                                     ]
                                 }, void 0, true, {
                                     fileName: "[project]/app/wizard/dish/page.tsx",
-                                    lineNumber: 291,
+                                    lineNumber: 297,
                                     columnNumber: 13
                                 }, this)
                             ]
                         }, void 0, true, {
                             fileName: "[project]/app/wizard/dish/page.tsx",
-                            lineNumber: 136,
+                            lineNumber: 142,
                             columnNumber: 11
                         }, this)
                     ]
                 }, void 0, true, {
                     fileName: "[project]/app/wizard/dish/page.tsx",
-                    lineNumber: 128,
+                    lineNumber: 134,
                     columnNumber: 9
                 }, this)
             ]
         }, void 0, true, {
             fileName: "[project]/app/wizard/dish/page.tsx",
-            lineNumber: 104,
+            lineNumber: 110,
             columnNumber: 7
         }, this)
     }, void 0, false, {
         fileName: "[project]/app/wizard/dish/page.tsx",
-        lineNumber: 103,
+        lineNumber: 109,
         columnNumber: 5
     }, this);
 }
