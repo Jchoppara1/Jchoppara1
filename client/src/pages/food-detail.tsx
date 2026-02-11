@@ -28,22 +28,22 @@ interface PairingResult {
 }
 
 const categoryColors: Record<string, string> = {
-  "Mazzes": "bg-amber-500/20 text-amber-700 dark:text-amber-300",
-  "Spreads": "bg-green-500/20 text-green-700 dark:text-green-300",
-  "Greens & Grains": "bg-emerald-500/20 text-emerald-700 dark:text-emerald-300",
-  "Meats & Seafood": "bg-rose-500/20 text-rose-700 dark:text-rose-300",
+  "Mazzes": "bg-gold/10 text-gold dark:bg-gold/20",
+  "Spreads": "bg-olive/10 text-olive dark:bg-olive/20",
+  "Greens & Grains": "bg-olive/15 text-olive dark:bg-olive/25",
+  "Meats & Seafood": "bg-terracotta/10 text-terracotta dark:bg-terracotta/20",
 };
 
 const wineTypeColors: Record<string, string> = {
-  Red: "bg-red-500/20 text-red-700 dark:text-red-300",
-  White: "bg-yellow-500/20 text-yellow-700 dark:text-yellow-300",
-  Rosé: "bg-pink-500/20 text-pink-700 dark:text-pink-300",
-  Sparkling: "bg-sky-500/20 text-sky-700 dark:text-sky-300",
+  Red: "bg-accent text-accent-foreground",
+  White: "bg-secondary text-secondary-foreground",
+  "Rosé": "bg-blush/40 text-terracotta dark:bg-blush dark:text-terracotta",
+  Sparkling: "bg-gold/10 text-gold dark:bg-gold/20 dark:text-gold",
 };
 
 function ScoreBar({ value, label }: { value: number; label: string }) {
   const pct = Math.round(value * 100);
-  const color = pct >= 70 ? "bg-emerald-500" : pct >= 40 ? "bg-amber-500" : "bg-red-400";
+  const color = pct >= 70 ? "bg-olive" : pct >= 40 ? "bg-gold" : "bg-terracotta";
   return (
     <div className="flex items-center gap-2">
       <span className="text-xs text-muted-foreground w-24 shrink-0">{label}</span>
@@ -58,7 +58,7 @@ function ScoreBar({ value, label }: { value: number; label: string }) {
 function PairingCard({ pairing, listLabel }: { pairing: PairingResult; listLabel: string }) {
   const [showDetails, setShowDetails] = useState(false);
   const score = Math.round(pairing.score * 100);
-  const scoreColor = score >= 70 ? "text-emerald-600 dark:text-emerald-400" : score >= 50 ? "text-amber-600 dark:text-amber-400" : "text-muted-foreground";
+  const scoreColor = score >= 70 ? "text-olive" : score >= 50 ? "text-gold" : "text-muted-foreground";
 
   return (
     <Card
@@ -102,7 +102,7 @@ function PairingCard({ pairing, listLabel }: { pairing: PairingResult; listLabel
           <div className="space-y-1">
             {pairing.whyItWorks.map((reason, i) => (
               <div key={i} className="flex items-start gap-2 text-sm">
-                <Check className="h-3.5 w-3.5 text-emerald-500 mt-0.5 shrink-0" />
+                <Check className="h-3.5 w-3.5 text-olive mt-0.5 shrink-0" />
                 <span className="text-muted-foreground">{reason}</span>
               </div>
             ))}
@@ -110,7 +110,7 @@ function PairingCard({ pairing, listLabel }: { pairing: PairingResult; listLabel
         )}
 
         {pairing.avoidNote && (
-          <p className="text-xs text-amber-600 dark:text-amber-400">
+          <p className="text-xs text-terracotta">
             Note: {pairing.avoidNote}
           </p>
         )}

@@ -59,24 +59,24 @@ interface WineProfileData {
 const foodCategories: FoodCategory[] = ["Mazzes", "Spreads", "Greens & Grains", "Meats & Seafood"];
 
 const categoryColors: Record<string, string> = {
-  "Mazzes": "bg-amber-500/20 text-amber-700 dark:text-amber-300",
-  "Spreads": "bg-green-500/20 text-green-700 dark:text-green-300",
-  "Greens & Grains": "bg-emerald-500/20 text-emerald-700 dark:text-emerald-300",
-  "Meats & Seafood": "bg-rose-500/20 text-rose-700 dark:text-rose-300",
+  "Mazzes": "bg-gold/10 text-gold dark:bg-gold/20",
+  "Spreads": "bg-olive/10 text-olive dark:bg-olive/20",
+  "Greens & Grains": "bg-olive/15 text-olive dark:bg-olive/25",
+  "Meats & Seafood": "bg-terracotta/10 text-terracotta dark:bg-terracotta/20",
 };
 
 const wineTypeColors: Record<string, string> = {
-  Red: "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300",
-  White: "bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-300",
-  "Rosé": "bg-pink-100 text-pink-800 dark:bg-pink-900/30 dark:text-pink-300",
-  Sparkling: "bg-sky-100 text-sky-800 dark:bg-sky-900/30 dark:text-sky-300",
+  Red: "bg-accent text-accent-foreground",
+  White: "bg-secondary text-secondary-foreground",
+  "Rosé": "bg-blush/40 text-terracotta dark:bg-blush dark:text-terracotta",
+  Sparkling: "bg-gold/10 text-gold dark:bg-gold/20 dark:text-gold",
 };
 
 const priceCategoryColors: Record<string, string> = {
-  "$": "bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-300",
-  "$$": "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300",
-  "$$$": "bg-violet-100 text-violet-800 dark:bg-violet-900/30 dark:text-violet-300",
-  "$$$$": "bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-300",
+  "$": "bg-olive/10 text-olive dark:bg-olive/20 dark:text-olive",
+  "$$": "bg-secondary text-secondary-foreground",
+  "$$$": "bg-gold/10 text-gold dark:bg-gold/20",
+  "$$$$": "bg-gold/15 text-gold dark:bg-gold/25 border border-gold/30",
 };
 
 type DishFilter = "vegetarian" | "spicy" | "seafood" | "red_meat";
@@ -275,7 +275,7 @@ function PairingWineCard({
             <div className="space-y-1 pb-1">
               {whyItWorks.slice(0, 2).map((reason, i) => (
                 <div key={i} className="flex items-start gap-1.5 text-xs">
-                  <Check className="h-3 w-3 text-emerald-500 mt-0.5 shrink-0" />
+                  <Check className="h-3 w-3 text-olive mt-0.5 shrink-0" />
                   <span className="text-muted-foreground">{reason}</span>
                 </div>
               ))}

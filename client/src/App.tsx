@@ -14,9 +14,11 @@ function NavBar() {
   const [location] = useLocation();
   
   return (
-    <nav className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-      <div className="max-w-7xl mx-auto px-4 h-14 flex items-center gap-6">
+    <nav className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 bg-delbar-pattern">
+      <div className="max-w-7xl mx-auto px-4 h-14 flex items-center justify-between gap-6">
         <div className="flex items-center gap-4">
+          <span className="font-serif text-lg font-semibold tracking-wide text-foreground select-none">Delbar</span>
+          <div className="w-px h-6 bg-border" />
           <Link href="/">
             <Button 
               variant={location === "/" ? "default" : "ghost"} 

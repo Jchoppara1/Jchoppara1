@@ -8,10 +8,10 @@ interface FoodCardProps {
 }
 
 const categoryColors: Record<string, string> = {
-  "Mazzes": "bg-amber-500/20 text-amber-700 dark:text-amber-300",
-  "Spreads": "bg-green-500/20 text-green-700 dark:text-green-300",
-  "Greens & Grains": "bg-emerald-500/20 text-emerald-700 dark:text-emerald-300",
-  "Meats & Seafood": "bg-rose-500/20 text-rose-700 dark:text-rose-300",
+  "Mazzes": "bg-gold/10 text-gold dark:bg-gold/20",
+  "Spreads": "bg-olive/10 text-olive dark:bg-olive/20",
+  "Greens & Grains": "bg-olive/15 text-olive dark:bg-olive/25",
+  "Meats & Seafood": "bg-terracotta/10 text-terracotta dark:bg-terracotta/20",
 };
 
 export function FoodCard({ food, onClick }: FoodCardProps) {

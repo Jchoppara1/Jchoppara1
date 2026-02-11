@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerClose } from "@/components/ui/drawer";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -59,24 +59,24 @@ interface WineDetailModalProps {
 }
 
 const wineTypeColors: Record<string, string> = {
-  Red: "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300",
-  White: "bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-300",
-  Rosé: "bg-pink-100 text-pink-800 dark:bg-pink-900/30 dark:text-pink-300",
-  Sparkling: "bg-sky-100 text-sky-800 dark:bg-sky-900/30 dark:text-sky-300",
+  Red: "bg-accent text-accent-foreground",
+  White: "bg-secondary text-secondary-foreground",
+  "Rosé": "bg-blush/40 text-terracotta dark:bg-blush dark:text-terracotta",
+  Sparkling: "bg-gold/10 text-gold dark:bg-gold/20 dark:text-gold",
 };
 
 const priceCategoryColors: Record<string, string> = {
-  "$": "bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-300",
-  "$$": "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300",
-  "$$$": "bg-violet-100 text-violet-800 dark:bg-violet-900/30 dark:text-violet-300",
-  "$$$$": "bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-300",
+  "$": "bg-olive/10 text-olive dark:bg-olive/20 dark:text-olive",
+  "$$": "bg-secondary text-secondary-foreground",
+  "$$$": "bg-gold/10 text-gold dark:bg-gold/20",
+  "$$$$": "bg-gold/15 text-gold dark:bg-gold/25 border border-gold/30",
 };
 
 const categoryColors: Record<string, string> = {
-  "Mazzes": "bg-amber-500/20 text-amber-700 dark:text-amber-300",
-  "Spreads": "bg-green-500/20 text-green-700 dark:text-green-300",
-  "Greens & Grains": "bg-emerald-500/20 text-emerald-700 dark:text-emerald-300",
-  "Meats & Seafood": "bg-rose-500/20 text-rose-700 dark:text-rose-300",
+  "Mazzes": "bg-gold/10 text-gold dark:bg-gold/20",
+  "Spreads": "bg-olive/10 text-olive dark:bg-olive/20",
+  "Greens & Grains": "bg-olive/15 text-olive dark:bg-olive/25",
+  "Meats & Seafood": "bg-terracotta/10 text-terracotta dark:bg-terracotta/20",
 };
 
 function InsightChip({ label, value }: { label: string; value: string }) {
@@ -145,7 +145,7 @@ function WineDetailContent({
         </div>
       )}
 
-      <div className="border-t" />
+      <div className="gold-divider" />
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div className="space-y-5">
@@ -356,6 +356,7 @@ export function WineDetailModal({ wine, open, onOpenChange, isGlassWine = false,
           <DialogHeader className="space-y-1 pr-8">
             {headerContent}
           </DialogHeader>
+          <DialogDescription className="sr-only">Wine details and food pairing recommendations</DialogDescription>
           <WineDetailContent wine={wine} isGlassWine={isGlassWine} onSelectFood={onSelectFood} />
         </div>
       </DialogContent>

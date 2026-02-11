@@ -6,12 +6,11 @@ export default {
   theme: {
     extend: {
       borderRadius: {
-        lg: ".5625rem", /* 9px */
-        md: ".375rem", /* 6px */
-        sm: ".1875rem", /* 3px */
+        lg: ".625rem",
+        md: ".4375rem",
+        sm: ".25rem",
       },
       colors: {
-        // Flat / base colors (regular buttons)
         background: "hsl(var(--background) / <alpha-value>)",
         foreground: "hsl(var(--foreground) / <alpha-value>)",
         border: "hsl(var(--border) / <alpha-value>)",
@@ -81,11 +80,19 @@ export default {
           busy: "rgb(239 68 68)",
           offline: "rgb(156 163 175)",
         },
+        gold: "hsl(var(--gold) / <alpha-value>)",
+        blush: "hsl(var(--blush) / <alpha-value>)",
+        olive: "hsl(var(--olive) / <alpha-value>)",
+        terracotta: "hsl(var(--terracotta) / <alpha-value>)",
       },
       fontFamily: {
         sans: ["var(--font-sans)"],
         serif: ["var(--font-serif)"],
         mono: ["var(--font-mono)"],
+      },
+      boxShadow: {
+        soft: "0 10px 30px rgba(42, 30, 26, 0.10)",
+        lift: "0 12px 40px rgba(42, 30, 26, 0.14)",
       },
       keyframes: {
         "accordion-down": {
