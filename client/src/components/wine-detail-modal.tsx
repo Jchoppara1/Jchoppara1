@@ -1,12 +1,14 @@
 import { useQuery } from "@tanstack/react-query";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogClose } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerClose } from "@/components/ui/drawer";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { X, Thermometer, Wine, UtensilsCrossed } from "lucide-react";
+import { Collapsible, CollapsibleTrigger, CollapsibleContent } from "@/components/ui/collapsible";
+import { X, Thermometer, Wine, UtensilsCrossed, ChevronDown, ChevronRight, ArrowLeft } from "lucide-react";
 import { formatPrice } from "@shared/wineRules";
 import { apiRequest } from "@/lib/queryClient";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { useState } from "react";
 
 interface WineProfile {
   body: string;
@@ -51,6 +53,9 @@ interface WineDetailModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   isGlassWine?: boolean;
+  onSelectFood?: (foodId: string) => void;
+  backLabel?: string;
+  onBack?: () => void;
 }
 
 const wineTypeColors: Record<string, string> = {
@@ -67,30 +72,37 @@ const priceCategoryColors: Record<string, string> = {
   "$$$$": "bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-300",
 };
 
-function StyleBar({ label, value }: { label: string; value: string }) {
-  const levels: Record<string, number> = {
-    none: 0, light: 1, low: 1, dry: 1,
-    medium: 2, "medium-light": 1.5, "medium-full": 2.5, "off-dry": 1.5,
-    high: 3, full: 3, heavy: 3, sweet: 3,
-  };
-  const level = levels[value] ?? 1;
-  const pct = Math.round((level / 3) * 100);
+const categoryColors: Record<string, string> = {
+  "Mazzes": "bg-amber-500/20 text-amber-700 dark:text-amber-300",
+  "Spreads": "bg-green-500/20 text-green-700 dark:text-green-300",
+  "Greens & Grains": "bg-emerald-500/20 text-emerald-700 dark:text-emerald-300",
+  "Meats & Seafood": "bg-rose-500/20 text-rose-700 dark:text-rose-300",
+};
 
+function InsightChip({ label, value }: { label: string; value: string }) {
+  if (!value || value === "none") return null;
   return (
-    <div className="flex items-center gap-3">
-      <span className="text-xs text-muted-foreground w-20 shrink-0 capitalize">{label}</span>
-      <div className="flex-1 h-2 bg-muted rounded-full overflow-hidden">
-        <div
-          className="h-full rounded-full bg-primary/70 transition-all duration-300"
-          style={{ width: `${pct}%` }}
-        />
-      </div>
-      <span className="text-xs text-muted-foreground w-16 text-right capitalize">{value}</span>
+    <div className="flex flex-col items-center justify-center rounded-md border px-3 py-2 min-w-[72px]" data-testid={`chip-${label.toLowerCase()}`}>
+      <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">{label}</span>
+      <span className="text-xs font-medium capitalize mt-0.5">{value}</span>
     </div>
   );
 }
 
-function WineDetailContent({ wine, isGlassWine }: { wine: EnrichedWine; isGlassWine: boolean }) {
+function extractVintageAndClean(name: string): { displayName: string; vintage: string | null } {
+  const match = name.match(/\b(19|20)\d{2}\b/);
+  return { displayName: name, vintage: match ? match[0] : null };
+}
+
+function WineDetailContent({
+  wine,
+  isGlassWine,
+  onSelectFood,
+}: {
+  wine: EnrichedWine;
+  isGlassWine: boolean;
+  onSelectFood?: (foodId: string) => void;
+}) {
   const listType = isGlassWine ? "glass" : "bottle";
 
   const { data: pairings } = useQuery<FoodPairingResult[]>({
@@ -110,167 +122,224 @@ function WineDetailContent({ wine, isGlassWine }: { wine: EnrichedWine; isGlassW
     : profile?.body === "light" ? "12-14°C (54-57°F)"
     : "16-18°C (61-65°F)";
 
+  const glassType = wine.wineType === "Sparkling" ? "Flute or coupe"
+    : wine.wineType === "White" || wine.wineType === "Rosé" ? "Standard white wine glass"
+    : profile?.body === "full" ? "Large Bordeaux glass"
+    : "Standard red wine glass";
+
+  const guestLikes: string[] = [];
+  if (desc) {
+    if (desc.aromas[0]) guestLikes.push(desc.aromas[0]);
+    if (desc.palate[0]) guestLikes.push(desc.palate[0]);
+  }
+
   return (
     <div className="space-y-5">
-      <div className="flex flex-wrap gap-1.5">
-        <Badge className={`text-xs ${wineTypeColors[wine.wineType]}`} data-testid="badge-wine-detail-type">
-          {wine.wineType}
-        </Badge>
-        <Badge className={`text-xs ${priceCategoryColors[wine.priceCategory]}`}>
-          {wine.priceCategory}
-        </Badge>
-        <Badge variant="outline" className="text-xs font-semibold" data-testid="badge-wine-detail-price">
-          {formatPrice(wine.priceCents)}
-        </Badge>
-      </div>
-
-      <div className="space-y-1">
-        <div className="flex items-center gap-2 text-sm">
-          <Wine className="h-4 w-4 text-muted-foreground shrink-0" />
-          <span className="text-muted-foreground">Grape:</span>
-          <span className="font-medium">{wine.varietal}</span>
-        </div>
-        {profile?.regionCues && profile.regionCues.length > 0 && (
-          <div className="flex items-center gap-2 text-sm">
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-muted-foreground shrink-0"><circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/><path d="M2 12h20"/></svg>
-            <span className="text-muted-foreground">Region:</span>
-            <span className="font-medium">{profile.regionCues.join(", ")}</span>
-          </div>
-        )}
-      </div>
-
       {profile && (
-        <div className="space-y-3">
-          <h4 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">Style Breakdown</h4>
-          <div className="space-y-2">
-            <StyleBar label="Body" value={profile.body} />
-            <StyleBar label="Acidity" value={profile.acidity} />
-            {profile.tannin !== "none" && <StyleBar label="Tannin" value={profile.tannin} />}
-            <StyleBar label="Sweetness" value={profile.sweetness} />
-            {profile.oak !== "none" && <StyleBar label="Oak" value={profile.oak} />}
-          </div>
+        <div className="flex flex-wrap gap-2" data-testid="wine-insight-strip">
+          <InsightChip label="Body" value={profile.body} />
+          <InsightChip label="Acidity" value={profile.acidity} />
+          {profile.tannin !== "none" && <InsightChip label="Tannin" value={profile.tannin} />}
+          <InsightChip label="Sweetness" value={profile.sweetness} />
+          {profile.oak !== "none" && <InsightChip label="Oak" value={profile.oak} />}
         </div>
       )}
 
-      {desc && (
-        <div className="space-y-3">
-          <h4 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">Tasting Notes</h4>
-          <div className="space-y-2">
-            <div>
-              <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Aroma</span>
-              <ul className="mt-1 space-y-0.5">
-                {desc.aromas.map((a, i) => (
-                  <li key={i} className="text-sm flex items-start gap-2">
-                    <span className="text-primary mt-1.5 shrink-0">
-                      <svg width="6" height="6"><circle cx="3" cy="3" r="3" fill="currentColor"/></svg>
-                    </span>
-                    {a}
-                  </li>
-                ))}
-              </ul>
-            </div>
-            <div>
-              <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Palate</span>
-              <ul className="mt-1 space-y-0.5">
-                {desc.palate.map((p, i) => (
-                  <li key={i} className="text-sm flex items-start gap-2">
-                    <span className="text-primary mt-1.5 shrink-0">
-                      <svg width="6" height="6"><circle cx="3" cy="3" r="3" fill="currentColor"/></svg>
-                    </span>
-                    {p}
-                  </li>
-                ))}
-              </ul>
-            </div>
-          </div>
-        </div>
-      )}
+      <div className="border-t" />
 
-      {profile && profile.flavorNotes.length > 0 && (
-        <div className="space-y-2">
-          <h4 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">Flavor Notes</h4>
-          <div className="flex flex-wrap gap-1.5">
-            {profile.flavorNotes.map((note) => (
-              <Badge key={note} variant="outline" className="text-xs capitalize">
-                {note}
-              </Badge>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {topPairings.length > 0 && (
-        <div className="space-y-3">
-          <h4 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground flex items-center gap-1.5">
-            <UtensilsCrossed className="h-3.5 w-3.5" />
-            Best Food Matches
-          </h4>
-          <div className="space-y-2">
-            {topPairings.map(({ food, score, explanation }) => (
-              <div key={food.id} className="flex items-start gap-3 text-sm" data-testid={`wine-detail-pairing-${food.id}`}>
-                <span className="font-semibold tabular-nums text-primary shrink-0">{Math.round(score * 100)}%</span>
-                <div className="min-w-0">
-                  <span className="font-medium">{food.name.replace(" (GF)", "")}</span>
-                  <p className="text-xs text-muted-foreground mt-0.5">{explanation}</p>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="space-y-5">
+          {desc && (
+            <div className="space-y-3">
+              <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Tasting Notes</h4>
+              <div className="space-y-3">
+                <div>
+                  <span className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">Aroma</span>
+                  <ul className="mt-1 space-y-1">
+                    {desc.aromas.map((a, i) => (
+                      <li key={i} className="text-sm flex items-start gap-2" data-testid={`wine-aroma-${i}`}>
+                        <span className="text-primary mt-1.5 shrink-0">
+                          <svg width="5" height="5"><circle cx="2.5" cy="2.5" r="2.5" fill="currentColor"/></svg>
+                        </span>
+                        {a}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+                <div>
+                  <span className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">Palate</span>
+                  <ul className="mt-1 space-y-1">
+                    {desc.palate.map((p, i) => (
+                      <li key={i} className="text-sm flex items-start gap-2" data-testid={`wine-palate-${i}`}>
+                        <span className="text-primary mt-1.5 shrink-0">
+                          <svg width="5" height="5"><circle cx="2.5" cy="2.5" r="2.5" fill="currentColor"/></svg>
+                        </span>
+                        {p}
+                      </li>
+                    ))}
+                  </ul>
                 </div>
               </div>
-            ))}
+            </div>
+          )}
+
+          {profile && profile.flavorNotes.length > 0 && (
+            <div className="space-y-2">
+              <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Flavor Notes</h4>
+              <div className="flex flex-wrap gap-1.5">
+                {profile.flavorNotes.map((note) => (
+                  <Badge key={note} variant="outline" className="text-xs capitalize rounded-full">
+                    {note}
+                  </Badge>
+                ))}
+              </div>
+            </div>
+          )}
+
+          <div className="space-y-2">
+            <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Serving</h4>
+            <div className="flex items-center gap-2 text-sm">
+              <Thermometer className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+              <span className="text-muted-foreground" data-testid="text-wine-detail-temp">{servingTemp}</span>
+            </div>
+            <div className="flex items-center gap-2 text-sm">
+              <Wine className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+              <span className="text-muted-foreground">{glassType}</span>
+            </div>
           </div>
         </div>
-      )}
 
-      <div className="flex items-center gap-2 text-sm border-t pt-4">
-        <Thermometer className="h-4 w-4 text-muted-foreground shrink-0" />
-        <span className="text-muted-foreground">Serve at</span>
-        <span className="font-medium" data-testid="text-wine-detail-temp">{servingTemp}</span>
-      </div>
+        <div className="space-y-5">
+          {topPairings.length > 0 && (
+            <div className="space-y-3">
+              <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
+                <UtensilsCrossed className="h-3.5 w-3.5" />
+                Pairs Best With
+              </h4>
+              <div className="space-y-2">
+                {topPairings.map(({ food, score, explanation }) => (
+                  <div
+                    key={food.id}
+                    className={`rounded-md border p-3 space-y-1 ${onSelectFood ? "cursor-pointer hover-elevate" : ""}`}
+                    onClick={() => onSelectFood?.(food.id)}
+                    role={onSelectFood ? "button" : undefined}
+                    tabIndex={onSelectFood ? 0 : undefined}
+                    onKeyDown={(e) => { if (onSelectFood && (e.key === "Enter" || e.key === " ")) { e.preventDefault(); onSelectFood(food.id); } }}
+                    data-testid={`wine-detail-pairing-${food.id}`}
+                  >
+                    <div className="flex items-center justify-between gap-2">
+                      <div className="flex items-center gap-1.5 min-w-0 flex-wrap">
+                        <span className="text-sm font-medium line-clamp-1">{food.name.replace(" (GF)", "")}</span>
+                        <Badge className={`text-[10px] ${categoryColors[food.category] || "bg-muted"}`}>
+                          {food.category}
+                        </Badge>
+                      </div>
+                      <span className="text-sm font-bold tabular-nums text-primary shrink-0">{Math.round(score * 100)}%</span>
+                    </div>
+                    <p className="text-xs text-muted-foreground line-clamp-2">{explanation}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
 
-      {desc && desc.servingSuggestions.length > 0 && (
-        <div className="space-y-2">
-          <h4 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">Serving Suggestions</h4>
-          <ul className="space-y-1">
-            {desc.servingSuggestions.map((s, i) => (
-              <li key={i} className="text-sm text-muted-foreground">{s}</li>
-            ))}
-          </ul>
+          {guestLikes.length > 0 && (
+            <div className="space-y-2">
+              <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Why Guests Like It</h4>
+              <ul className="space-y-1">
+                {guestLikes.map((like, i) => (
+                  <li key={i} className="text-sm text-muted-foreground flex items-start gap-2" data-testid={`wine-guest-like-${i}`}>
+                    <span className="text-primary mt-1.5 shrink-0">
+                      <svg width="5" height="5"><circle cx="2.5" cy="2.5" r="2.5" fill="currentColor"/></svg>
+                    </span>
+                    {like}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
         </div>
-      )}
+      </div>
     </div>
   );
 }
 
-export function WineDetailModal({ wine, open, onOpenChange, isGlassWine = false }: WineDetailModalProps) {
+export function WineDetailModal({ wine, open, onOpenChange, isGlassWine = false, onSelectFood, backLabel, onBack }: WineDetailModalProps) {
   const isMobile = useIsMobile();
 
   if (!wine) return null;
 
   const desc = wine.wineDescription;
-  const title = wine.name;
-  const subtitle = desc?.headline;
+  const profile = wine.profile;
+  const { vintage } = extractVintageAndClean(wine.name);
+  const regionStr = profile?.regionCues?.join(", ");
+  const grapesStr = profile?.grapes?.join(", ") || wine.varietal;
+
+  const subtitleParts: string[] = [];
+  if (regionStr) subtitleParts.push(regionStr);
+  if (grapesStr) subtitleParts.push(grapesStr);
+  if (vintage) subtitleParts.push(vintage);
+
+  const headerContent = (
+    <>
+      {backLabel && onBack && (
+        <button
+          className="flex items-center gap-1 text-xs text-muted-foreground mb-2 hover:text-foreground transition-colors"
+          onClick={onBack}
+          data-testid="button-back-to-dish"
+        >
+          <ArrowLeft className="h-3 w-3" />
+          {backLabel}
+        </button>
+      )}
+      <div className="flex items-start justify-between gap-3">
+        <div className="min-w-0 flex-1 space-y-1">
+          {isMobile ? (
+            <DrawerTitle className="text-xl font-bold leading-tight break-words" data-testid="text-wine-detail-name">
+              {wine.name}
+            </DrawerTitle>
+          ) : (
+            <DialogTitle className="text-xl font-bold leading-tight break-words" data-testid="text-wine-detail-name">
+              {wine.name}
+            </DialogTitle>
+          )}
+          {subtitleParts.length > 0 && (
+            <p className="text-sm text-muted-foreground" data-testid="text-wine-detail-subtitle">
+              {subtitleParts.join(" · ")}
+            </p>
+          )}
+          {desc?.headline && (
+            <p className="text-sm text-muted-foreground italic">{desc.headline}</p>
+          )}
+        </div>
+        <div className="flex items-center gap-2 shrink-0">
+          <div className="flex flex-col items-end gap-1">
+            <Badge className={`text-xs ${priceCategoryColors[wine.priceCategory]}`} data-testid="badge-wine-detail-tier">
+              {wine.priceCategory}
+            </Badge>
+            <span className="text-sm font-semibold tabular-nums" data-testid="badge-wine-detail-price">
+              {formatPrice(wine.priceCents)}
+            </span>
+          </div>
+        </div>
+      </div>
+      <div className="flex items-center gap-1.5 flex-wrap mt-2">
+        <Badge className={`text-xs ${wineTypeColors[wine.wineType]}`} data-testid="badge-wine-detail-type">
+          {wine.wineType}
+        </Badge>
+      </div>
+    </>
+  );
 
   if (isMobile) {
     return (
       <Drawer open={open} onOpenChange={onOpenChange}>
         <DrawerContent className="max-h-[90vh]" data-testid="wine-detail-modal">
           <div className="overflow-y-auto px-6 pb-6">
-            <DrawerHeader className="px-0 pb-2">
-              <div className="flex items-start justify-between gap-3">
-                <div className="min-w-0 flex-1">
-                  <DrawerTitle className="text-xl font-bold leading-tight break-words" data-testid="text-wine-detail-name">
-                    {title}
-                  </DrawerTitle>
-                  {subtitle && (
-                    <p className="text-sm text-muted-foreground italic mt-1">{subtitle}</p>
-                  )}
-                </div>
-                <DrawerClose asChild>
-                  <Button size="icon" variant="ghost" data-testid="button-close-wine-detail">
-                    <X className="h-4 w-4" />
-                  </Button>
-                </DrawerClose>
-              </div>
+            <DrawerHeader className="px-0 pb-3">
+              {headerContent}
             </DrawerHeader>
-            <WineDetailContent wine={wine} isGlassWine={isGlassWine} />
+            <WineDetailContent wine={wine} isGlassWine={isGlassWine} onSelectFood={onSelectFood} />
           </div>
         </DrawerContent>
       </Drawer>
@@ -280,19 +349,14 @@ export function WineDetailModal({ wine, open, onOpenChange, isGlassWine = false 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
-        className="sm:max-w-lg max-h-[85vh] overflow-y-auto p-0"
+        className="sm:max-w-[860px] max-h-[85vh] overflow-y-auto p-0 rounded-2xl"
         data-testid="wine-detail-modal"
       >
-        <div className="p-6 space-y-5">
-          <DialogHeader className="space-y-2 pr-8">
-            <DialogTitle className="text-xl font-bold leading-tight break-words" data-testid="text-wine-detail-name">
-              {title}
-            </DialogTitle>
-            {subtitle && (
-              <p className="text-sm text-muted-foreground italic">{subtitle}</p>
-            )}
+        <div className="p-7 space-y-5">
+          <DialogHeader className="space-y-1 pr-8">
+            {headerContent}
           </DialogHeader>
-          <WineDetailContent wine={wine} isGlassWine={isGlassWine} />
+          <WineDetailContent wine={wine} isGlassWine={isGlassWine} onSelectFood={onSelectFood} />
         </div>
       </DialogContent>
     </Dialog>

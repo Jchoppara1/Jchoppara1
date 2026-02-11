@@ -21,6 +21,8 @@ import { Search, Plus, Wine as WineIcon, Pencil, Trash2, X, Filter, GlassWater, 
 import { formatPrice } from "@shared/wineRules";
 import { WineFoodPairings } from "@/components/wine-food-pairings";
 import { WineDetailModal } from "@/components/wine-detail-modal";
+import { DishDetailModal } from "@/components/dish-detail-modal";
+import type { Food } from "@shared/foodSchema";
 
 interface EnrichedWine extends Wine {
   profile?: {
@@ -534,6 +536,8 @@ export default function Home() {
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingWine, setEditingWine] = useState<EnrichedWine | null>(null);
   const [selectedWine, setSelectedWine] = useState<EnrichedWine | null>(null);
+  const [selectedDish, setSelectedDish] = useState<Food | null>(null);
+  const [backToWine, setBackToWine] = useState<EnrichedWine | null>(null);
   const [showMobileFilters, setShowMobileFilters] = useState(false);
   const [viewMode, setViewMode] = useState<WineViewMode>("bottle");
 
@@ -545,8 +549,39 @@ export default function Home() {
     queryKey: ["/api/wines-by-glass"],
   });
 
+  const { data: allFoods } = useQuery<Food[]>({
+    queryKey: ["/api/foods"],
+  });
+
   const wines = viewMode === "bottle" ? bottleWines : glassWines;
   const isLoading = viewMode === "bottle" ? bottleLoading : glassLoading;
+
+  const handleSelectFoodFromWine = (foodId: string) => {
+    const food = allFoods?.find(f => f.id === foodId);
+    if (food) {
+      setBackToWine(selectedWine);
+      setSelectedWine(null);
+      setSelectedDish(food);
+    }
+  };
+
+  const handleSelectWineFromDish = (wineId: string) => {
+    const allWinesList = [...(bottleWines || []), ...(glassWines || [])];
+    const wine = allWinesList.find(w => w.id === wineId);
+    if (wine) {
+      setSelectedDish(null);
+      setBackToWine(null);
+      setSelectedWine(wine);
+    }
+  };
+
+  const handleBackToWine = () => {
+    if (backToWine) {
+      setSelectedDish(null);
+      setSelectedWine(backToWine);
+      setBackToWine(null);
+    }
+  };
 
   const filteredWines = useMemo(() => {
     if (!wines) return [];
@@ -776,6 +811,19 @@ export default function Home() {
         open={!!selectedWine}
         onOpenChange={(open) => !open && setSelectedWine(null)}
         isGlassWine={viewMode === "glass"}
+        onSelectFood={handleSelectFoodFromWine}
+      />
+
+      <DishDetailModal
+        food={selectedDish}
+        open={!!selectedDish}
+        onOpenChange={(open) => {
+          if (!open) {
+            setSelectedDish(null);
+            setBackToWine(null);
+          }
+        }}
+        onSelectWine={handleSelectWineFromDish}
       />
     </div>
   );
