@@ -1,12 +1,12 @@
 import { useState, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
-import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerClose } from "@/components/ui/drawer";
+import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from "@/components/ui/drawer";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Collapsible, CollapsibleTrigger, CollapsibleContent } from "@/components/ui/collapsible";
-import { Wine, Check, X, ChevronDown, ChevronRight, Flame, AlertTriangle } from "lucide-react";
+import { Wine, Check, ChevronDown, ChevronRight, AlertTriangle } from "lucide-react";
 import { apiRequest } from "@/lib/queryClient";
 import { useIsMobile } from "@/hooks/use-mobile";
 import type { Food } from "@shared/foodSchema";
@@ -77,9 +77,9 @@ const priceCategoryColors: Record<string, string> = {
 
 function InsightChip({ label, value }: { label: string; value: string }) {
   return (
-    <div className="flex flex-col items-center justify-center rounded-md border px-3 py-2 min-w-[72px]" data-testid={`chip-${label.toLowerCase().replace(/\s/g, "-")}`}>
-      <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">{label}</span>
-      <span className="text-xs font-medium capitalize mt-0.5">{value}</span>
+    <div className="flex flex-col items-center justify-center bg-muted/50 border border-border rounded-xl p-3 min-w-[72px]" data-testid={`chip-${label.toLowerCase().replace(/\s/g, "-")}`}>
+      <span className="text-[11px] uppercase tracking-widest text-muted-foreground">{label}</span>
+      <span className="text-sm font-medium capitalize mt-0.5">{value}</span>
     </div>
   );
 }
@@ -152,7 +152,7 @@ function extractVintage(name: string): string | null {
   return match ? match[0] : null;
 }
 
-function PairingRow({
+function PairingCard({
   pairing,
   onSelectWine,
 }: {
@@ -162,45 +162,46 @@ function PairingRow({
   const [breakdownOpen, setBreakdownOpen] = useState(false);
   const { wine, score, whyItWorks, avoidNote, breakdown } = pairing;
   const vintage = extractVintage(wine.name);
+  const scoreColor = score >= 0.7 ? "text-olive" : score >= 0.5 ? "text-gold" : "text-muted-foreground";
 
   return (
     <div
-      className={`rounded-md border p-3 space-y-2 ${onSelectWine ? "cursor-pointer hover-elevate" : ""}`}
+      className={`bg-card rounded-2xl border border-border p-5 space-y-3 transition-transform ${onSelectWine ? "cursor-pointer hover-elevate" : ""}`}
       data-testid={`dish-detail-pairing-${wine.id}`}
     >
       <div
-        className="flex items-start justify-between gap-2"
+        className="flex items-start justify-between gap-3"
         onClick={() => onSelectWine?.(wine.id)}
         role={onSelectWine ? "button" : undefined}
         tabIndex={onSelectWine ? 0 : undefined}
+        aria-label={onSelectWine ? `View details for ${wine.name}` : undefined}
         onKeyDown={(e) => { if (onSelectWine && (e.key === "Enter" || e.key === " ")) { e.preventDefault(); onSelectWine(wine.id); } }}
       >
-        <div className="min-w-0 flex-1">
+        <div className="min-w-0 flex-1 space-y-1.5">
           <div className="flex items-center gap-1.5 flex-wrap">
-            <span className="text-sm font-semibold line-clamp-1">{wine.name}</span>
-            {vintage && <span className="text-xs text-muted-foreground">{vintage}</span>}
+            <span className="text-sm font-semibold">{wine.name}</span>
           </div>
-          <div className="flex items-center gap-1.5 mt-1 flex-wrap">
+          <p className="text-xs text-muted-foreground">{wine.varietal}</p>
+          <div className="flex items-center gap-1.5 flex-wrap">
             <Badge className={`text-[10px] ${wineTypeColors[wine.wineType]}`}>
               {wine.wineType}
             </Badge>
-            <Badge className={`text-[10px] ${priceCategoryColors[wine.priceCategory]}`}>
+            <span className="border border-gold/40 bg-gold/10 text-foreground px-2 py-0.5 rounded-full text-[10px] font-medium">
               {wine.priceCategory}
-            </Badge>
-            <span className="text-xs text-muted-foreground">{wine.varietal}</span>
+            </span>
           </div>
         </div>
-        <span className="text-lg font-bold tabular-nums text-primary shrink-0">
+        <span className={`text-lg font-bold tabular-nums ${scoreColor} shrink-0`}>
           {Math.round(score * 100)}%
         </span>
       </div>
 
       {whyItWorks.length > 0 && (
-        <p className="text-xs text-muted-foreground line-clamp-2">{whyItWorks[0]}</p>
+        <p className="text-xs text-muted-foreground leading-relaxed">{whyItWorks[0]}</p>
       )}
 
       {avoidNote && (
-        <div className="flex items-start gap-1.5 text-xs">
+        <div className="flex items-start gap-1.5 text-xs bg-terracotta/10 border border-terracotta/25 rounded-xl p-3">
           <AlertTriangle className="h-3 w-3 text-terracotta mt-0.5 shrink-0" />
           <span className="text-terracotta">{avoidNote}</span>
         </div>
@@ -219,7 +220,7 @@ function PairingRow({
           </Button>
         </CollapsibleTrigger>
         <CollapsibleContent className="data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 overflow-hidden">
-          <div className="space-y-1.5 pt-1 pb-1">
+          <div className="space-y-1.5 pt-2 pb-1">
             <ScoreBar value={breakdown.intensityMatch} label="Intensity" />
             <ScoreBar value={breakdown.acidFat} label="Acid / Fat" />
             <ScoreBar value={breakdown.tanninProtein} label="Tannin / Protein" />
@@ -298,8 +299,8 @@ function DishDetailContent({
   const pairingLogic = generatePairingLogic(food, allPairings[0], dishProfile ?? null);
 
   return (
-    <div className="space-y-5">
-      <div className="flex flex-wrap gap-2" data-testid="dish-insight-strip">
+    <div className="overflow-y-auto max-h-[calc(90vh-220px)] px-6 pb-6 space-y-6">
+      <div className="grid grid-cols-2 sm:grid-cols-5 gap-2" data-testid="dish-insight-strip">
         {dishProfile && (
           <>
             <InsightChip label="Protein" value={dishProfile.protein === "none" ? "Vegetable" : dishProfile.protein} />
@@ -311,22 +312,20 @@ function DishDetailContent({
         )}
       </div>
 
-      <div className="gold-divider" />
-
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div className="space-y-5">
           {food.description && (
-            <div className="space-y-2">
-              <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Description</h4>
-              <p className="text-sm text-muted-foreground leading-relaxed" data-testid="text-dish-detail-description">
+            <div className="bg-card rounded-2xl border border-border p-5 space-y-3">
+              <h4 className="text-sm uppercase tracking-widest text-muted-foreground">Description</h4>
+              <p className="text-sm leading-relaxed" data-testid="text-dish-detail-description">
                 {food.description}
               </p>
             </div>
           )}
 
           {tags.length > 0 && (
-            <div className="space-y-2">
-              <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Flavor Profile</h4>
+            <div className="bg-card rounded-2xl border border-border p-5 space-y-3">
+              <h4 className="text-sm uppercase tracking-widest text-muted-foreground">Flavor Profile</h4>
               <div className="flex flex-wrap gap-1.5">
                 {tags.map((tag) => (
                   <Badge key={tag} variant="outline" className="text-xs capitalize rounded-full">
@@ -338,10 +337,10 @@ function DishDetailContent({
           )}
 
           {pairingLogic && (
-            <div className="space-y-2">
-              <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Pairing Logic</h4>
-              <div className="border-l-2 border-gold/40 pl-3 bg-blush/20 dark:bg-blush/10 rounded-r-md py-2 pr-3">
-                <p className="text-sm text-muted-foreground leading-relaxed italic" data-testid="text-dish-pairing-logic">
+            <div className="bg-card rounded-2xl border border-border p-5 space-y-3">
+              <h4 className="text-sm uppercase tracking-widest text-muted-foreground">Chef's Pairing Logic</h4>
+              <div className="border-l-2 border-olive/50 bg-muted/30 p-4 rounded-xl">
+                <p className="text-sm leading-relaxed italic" data-testid="text-dish-pairing-logic">
                   {pairingLogic}
                 </p>
               </div>
@@ -350,7 +349,7 @@ function DishDetailContent({
         </div>
 
         <div className="space-y-3">
-          <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
+          <h4 className="text-sm uppercase tracking-widest text-muted-foreground flex items-center gap-1.5">
             <Wine className="h-3.5 w-3.5" />
             Top Pairings
           </h4>
@@ -358,13 +357,13 @@ function DishDetailContent({
           {isLoadingPairings ? (
             <div className="space-y-3">
               {Array.from({ length: 3 }).map((_, i) => (
-                <Skeleton key={i} className="h-24 w-full rounded-md" />
+                <Skeleton key={i} className="h-32 w-full rounded-2xl" />
               ))}
             </div>
           ) : allPairings.length > 0 ? (
-            <div className="space-y-2">
+            <div className="space-y-3">
               {allPairings.map((pairing) => (
-                <PairingRow
+                <PairingCard
                   key={pairing.wine.id}
                   pairing={pairing}
                   onSelectWine={onSelectWine}
@@ -389,15 +388,15 @@ export function DishDetailModal({ food, open, onOpenChange, onSelectWine }: Dish
   const tags = inferTags(food);
 
   const headerContent = (
-    <>
-      <div className="flex items-start justify-between gap-3">
-        <div className="min-w-0 flex-1 space-y-1">
+    <div className="bg-delbar-pattern px-6 pt-6 pb-5 border-b border-gold/30 relative">
+      <div className="flex items-start justify-between gap-4">
+        <div className="min-w-0 flex-1 space-y-1.5">
           {isMobile ? (
-            <DrawerTitle className="text-xl font-bold leading-tight break-words" data-testid="text-dish-detail-name">
+            <DrawerTitle className="text-2xl md:text-3xl font-semibold tracking-tight leading-tight break-words" data-testid="text-dish-detail-name">
               {food.name}
             </DrawerTitle>
           ) : (
-            <DialogTitle className="text-xl font-bold leading-tight break-words" data-testid="text-dish-detail-name">
+            <DialogTitle className="text-2xl md:text-3xl font-semibold tracking-tight leading-tight break-words" data-testid="text-dish-detail-name">
               {food.name}
             </DialogTitle>
           )}
@@ -412,23 +411,21 @@ export function DishDetailModal({ food, open, onOpenChange, onSelectWine }: Dish
             ))}
           </div>
         </div>
-        <div className="flex items-center gap-2 shrink-0">
+        <div className="flex flex-col items-end gap-2 shrink-0 pt-1">
           <span className="text-xl font-bold tabular-nums" data-testid="text-dish-detail-price">{priceDisplay}</span>
         </div>
       </div>
-    </>
+    </div>
   );
 
   if (isMobile) {
     return (
       <Drawer open={open} onOpenChange={onOpenChange}>
-        <DrawerContent className="max-h-[90vh]" data-testid="dish-detail-modal">
-          <div className="overflow-y-auto px-6 pb-6">
-            <DrawerHeader className="px-0 pb-3">
-              {headerContent}
-            </DrawerHeader>
-            <DishDetailContent food={food} onSelectWine={onSelectWine} />
-          </div>
+        <DrawerContent className="max-h-[90vh] overflow-hidden" data-testid="dish-detail-modal">
+          <DrawerHeader className="p-0">
+            {headerContent}
+          </DrawerHeader>
+          <DishDetailContent food={food} onSelectWine={onSelectWine} />
         </DrawerContent>
       </Drawer>
     );
@@ -437,16 +434,14 @@ export function DishDetailModal({ food, open, onOpenChange, onSelectWine }: Dish
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
-        className="sm:max-w-[860px] max-h-[85vh] overflow-y-auto p-0 rounded-2xl"
+        className="sm:max-w-[860px] w-[94vw] max-h-[90vh] overflow-hidden p-0 rounded-2xl border border-border bg-card shadow-lift"
         data-testid="dish-detail-modal"
       >
-        <div className="p-7 space-y-5">
-          <DialogHeader className="space-y-1 pr-8">
-            {headerContent}
-          </DialogHeader>
-          <DialogDescription className="sr-only">Dish details and wine pairing recommendations</DialogDescription>
-          <DishDetailContent food={food} onSelectWine={onSelectWine} />
-        </div>
+        <DialogDescription className="sr-only">Dish details and wine pairing recommendations</DialogDescription>
+        <DialogHeader className="p-0">
+          {headerContent}
+        </DialogHeader>
+        <DishDetailContent food={food} onSelectWine={onSelectWine} />
       </DialogContent>
     </Dialog>
   );
