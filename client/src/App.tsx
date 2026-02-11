@@ -36,7 +36,7 @@ function NavBar() {
               data-testid="nav-food"
             >
               <UtensilsCrossed className="h-4 w-4" />
-              Food Menu
+              Pairings
             </Button>
           </Link>
         </div>

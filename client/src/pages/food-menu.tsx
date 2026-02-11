@@ -1,113 +1,724 @@
-import { useState } from "react";
+import { useState, useMemo, useCallback } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { FoodCard } from "@/components/food-card";
-import { DishDetailModal } from "@/components/dish-detail-modal";
-import { Search } from "lucide-react";
+import { Collapsible, CollapsibleTrigger, CollapsibleContent } from "@/components/ui/collapsible";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Search, ChevronDown, ChevronRight, Flame, Droplets, Check, Wine, UtensilsCrossed, Beef, Fish, Leaf, X } from "lucide-react";
+import { apiRequest } from "@/lib/queryClient";
+import { useIsMobile } from "@/hooks/use-mobile";
 import type { Food, FoodCategory } from "@shared/foodSchema";
+
+interface PairingResult {
+  wine: {
+    id: string;
+    name: string;
+    wineType: string;
+    varietal: string;
+    priceCents: number;
+    priceCategory: string;
+    description?: string;
+  };
+  score: number;
+  explanation: string;
+  whyItWorks: string[];
+  breakdown: {
+    intensityMatch: number;
+    acidFat: number;
+    tanninProtein: number;
+    spiceHandling: number;
+    sauceMatch: number;
+    regionalBonus: number;
+    total: number;
+  };
+}
+
+interface WineProfileData {
+  profile: {
+    color: string;
+    body: string;
+    acidity: string;
+    tannin: string;
+    sweetness: string;
+    oak: string;
+    flavorNotes: string[];
+    regionCues: string[];
+    grapes: string[];
+  };
+  description: {
+    headline: string;
+    aromas: string[];
+    palate: string[];
+    structure: Record<string, string>;
+  };
+}
 
 const foodCategories: FoodCategory[] = ["Mazzes", "Spreads", "Greens & Grains", "Meats & Seafood"];
 
+const categoryColors: Record<string, string> = {
+  "Mazzes": "bg-amber-500/20 text-amber-700 dark:text-amber-300",
+  "Spreads": "bg-green-500/20 text-green-700 dark:text-green-300",
+  "Greens & Grains": "bg-emerald-500/20 text-emerald-700 dark:text-emerald-300",
+  "Meats & Seafood": "bg-rose-500/20 text-rose-700 dark:text-rose-300",
+};
+
+const wineTypeColors: Record<string, string> = {
+  Red: "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300",
+  White: "bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-300",
+  "Rosé": "bg-pink-100 text-pink-800 dark:bg-pink-900/30 dark:text-pink-300",
+  Sparkling: "bg-sky-100 text-sky-800 dark:bg-sky-900/30 dark:text-sky-300",
+};
+
+const priceCategoryColors: Record<string, string> = {
+  "$": "bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-300",
+  "$$": "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300",
+  "$$$": "bg-violet-100 text-violet-800 dark:bg-violet-900/30 dark:text-violet-300",
+  "$$$$": "bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-300",
+};
+
+type DishFilter = "vegetarian" | "spicy" | "seafood" | "red_meat";
+type WineColorFilter = "Red" | "White" | "Rosé" | "Sparkling";
+
+function inferDishTraits(food: Food) {
+  const name = food.name.toLowerCase();
+  const desc = (food.description || "").toLowerCase();
+  const combined = name + " " + desc;
+  const cat = food.category;
+
+  let isVegetarian = cat !== "Meats & Seafood";
+  let isSeafood = false;
+  let isRedMeat = false;
+  let isSpicy = false;
+
+  if (cat === "Meats & Seafood") {
+    if (combined.includes("shrimp") || combined.includes("fish") || combined.includes("seafood") || combined.includes("calamari") || combined.includes("prawns")) {
+      isSeafood = true;
+    } else {
+      isRedMeat = combined.includes("lamb") || combined.includes("beef") || combined.includes("steak") || combined.includes("kofta") || combined.includes("adana");
+    }
+  }
+
+  if (combined.includes("spic") || combined.includes("harissa") || combined.includes("chili") || combined.includes("adana") || combined.includes("hot")) {
+    isSpicy = true;
+  }
+
+  let spiceLevel: "Mild" | "Medium" | "Spicy" = "Mild";
+  if (isSpicy) spiceLevel = "Spicy";
+  else if (combined.includes("cumin") || combined.includes("sumac") || combined.includes("za'atar") || combined.includes("herbs")) spiceLevel = "Medium";
+
+  let richness: "Light" | "Medium" | "Rich" = "Light";
+  if (cat === "Meats & Seafood" || combined.includes("cream") || combined.includes("cheese") || combined.includes("butter")) richness = "Rich";
+  else if (cat === "Spreads" || combined.includes("olive oil") || combined.includes("tahini")) richness = "Medium";
+
+  return { isVegetarian, isSeafood, isRedMeat, isSpicy, spiceLevel, richness };
+}
+
+function extractVintage(name: string): { baseName: string; vintage: string | null } {
+  const match = name.match(/\b(19|20)\d{2}\b/);
+  return { baseName: name, vintage: match ? match[0] : null };
+}
+
+function extractRegion(description?: string): string | null {
+  if (!description) return null;
+  const match = description.match(/\(([^)]+)\)/);
+  return match ? match[1] : null;
+}
+
+function DishListItem({
+  food,
+  isSelected,
+  onClick,
+}: {
+  food: Food;
+  isSelected: boolean;
+  onClick: () => void;
+}) {
+  const traits = inferDishTraits(food);
+  const priceDisplay = `$${(food.priceCents / 100).toFixed(0)}`;
+
+  return (
+    <div
+      className={`flex items-start gap-3 p-3 rounded-md cursor-pointer transition-colors duration-150 ${
+        isSelected
+          ? "bg-accent"
+          : "hover-elevate"
+      }`}
+      onClick={onClick}
+      onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); onClick(); }}}
+      role="button"
+      tabIndex={0}
+      data-testid={`dish-item-${food.id}`}
+    >
+      <div className="flex-1 min-w-0 space-y-1.5">
+        <div className="flex items-start justify-between gap-2">
+          <h3 className="font-medium text-sm leading-tight line-clamp-1" data-testid={`text-dish-name-${food.id}`}>
+            {food.name}
+          </h3>
+          <span className="text-sm font-semibold tabular-nums shrink-0 text-muted-foreground">{priceDisplay}</span>
+        </div>
+        <div className="flex items-center gap-1.5 flex-wrap">
+          <Badge className={`text-xs ${categoryColors[food.category] || "bg-muted"}`} data-testid={`badge-dish-category-${food.id}`}>
+            {food.category}
+          </Badge>
+          {traits.spiceLevel !== "Mild" && (
+            <Badge variant="outline" className="text-xs gap-0.5" data-testid={`badge-dish-spice-${food.id}`}>
+              <Flame className="h-3 w-3" />
+              {traits.spiceLevel}
+            </Badge>
+          )}
+          <Badge variant="outline" className="text-xs" data-testid={`badge-dish-richness-${food.id}`}>
+            {traits.richness}
+          </Badge>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function PairingWineCard({
+  pairing,
+  wineColorFilter,
+}: {
+  pairing: PairingResult;
+  wineColorFilter: WineColorFilter | null;
+}) {
+  const [whyOpen, setWhyOpen] = useState(false);
+  const [tastingOpen, setTastingOpen] = useState(false);
+
+  const { wine, score, whyItWorks } = pairing;
+
+  const { data: profileData } = useQuery<WineProfileData>({
+    queryKey: ["/api/wines", wine.id, "profile", "bottle"],
+    queryFn: async () => {
+      const res = await apiRequest("GET", `/api/wines/${wine.id}/profile?list=bottle`);
+      return res.json();
+    },
+  });
+
+  if (wineColorFilter && wine.wineType !== wineColorFilter) return null;
+
+  const { vintage } = extractVintage(wine.name);
+  const region = extractRegion(wine.description || "") || (profileData?.profile?.regionCues?.[0] ?? null);
+  const grapes = profileData?.profile?.grapes || [wine.varietal];
+  const profile = profileData?.profile;
+  const desc = profileData?.description;
+
+  const styleBadges: string[] = [];
+  if (profile) {
+    if (profile.sweetness && profile.sweetness !== "none") styleBadges.push(profile.sweetness);
+    if (profile.acidity && profile.acidity !== "none") styleBadges.push(`${profile.acidity} acid`);
+    if (profile.body && profile.body !== "none") styleBadges.push(`${profile.body} body`);
+    if (profile.tannin && profile.tannin !== "none") styleBadges.push(`${profile.tannin} tannin`);
+    if (profile.oak && profile.oak !== "none") styleBadges.push(`${profile.oak} oak`);
+  }
+
+  return (
+    <Card className="overflow-visible" data-testid={`pairing-card-${wine.id}`}>
+      <CardContent className="p-4 space-y-3">
+        <div className="flex items-start justify-between gap-2">
+          <div className="min-w-0 flex-1">
+            <div className="flex items-center gap-1.5 flex-wrap">
+              <h4 className="font-semibold text-sm leading-tight line-clamp-1" data-testid={`text-pairing-wine-name-${wine.id}`}>
+                {wine.name}
+              </h4>
+              {vintage && (
+                <span className="text-xs text-muted-foreground shrink-0">{vintage}</span>
+              )}
+            </div>
+            <div className="flex items-center gap-1.5 mt-1 flex-wrap">
+              {region && (
+                <span className="text-xs text-muted-foreground">{region}</span>
+              )}
+              {region && grapes.length > 0 && <span className="text-xs text-muted-foreground">·</span>}
+              {grapes.length > 0 && (
+                <span className="text-xs text-muted-foreground line-clamp-1">{grapes.join(", ")}</span>
+              )}
+            </div>
+          </div>
+          <div className="flex items-center gap-1.5 shrink-0">
+            <span className="text-lg font-bold tabular-nums text-primary" data-testid={`text-pairing-score-${wine.id}`}>
+              {Math.round(score * 100)}%
+            </span>
+          </div>
+        </div>
+
+        <div className="flex items-center gap-1.5 flex-wrap">
+          <Badge className={`text-xs ${wineTypeColors[wine.wineType]}`} data-testid={`badge-pairing-type-${wine.id}`}>
+            {wine.wineType}
+          </Badge>
+          <Badge className={`text-xs ${priceCategoryColors[wine.priceCategory]}`} data-testid={`badge-pairing-price-${wine.id}`}>
+            {wine.priceCategory}
+          </Badge>
+          {styleBadges.slice(0, 4).map((badge) => (
+            <Badge key={badge} variant="outline" className="text-xs capitalize">
+              {badge}
+            </Badge>
+          ))}
+        </div>
+
+        <Collapsible open={whyOpen} onOpenChange={setWhyOpen}>
+          <CollapsibleTrigger asChild>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="w-full justify-start gap-1.5 px-0 text-muted-foreground"
+              data-testid={`button-why-${wine.id}`}
+            >
+              {whyOpen ? <ChevronDown className="h-3.5 w-3.5" /> : <ChevronRight className="h-3.5 w-3.5" />}
+              <span className="text-xs font-medium uppercase tracking-wide">Why it works</span>
+            </Button>
+          </CollapsibleTrigger>
+          <CollapsibleContent className="data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 overflow-hidden">
+            <div className="space-y-1 pb-1">
+              {whyItWorks.slice(0, 2).map((reason, i) => (
+                <div key={i} className="flex items-start gap-1.5 text-xs">
+                  <Check className="h-3 w-3 text-emerald-500 mt-0.5 shrink-0" />
+                  <span className="text-muted-foreground">{reason}</span>
+                </div>
+              ))}
+            </div>
+          </CollapsibleContent>
+        </Collapsible>
+
+        {desc && (
+          <Collapsible open={tastingOpen} onOpenChange={setTastingOpen}>
+            <CollapsibleTrigger asChild>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="w-full justify-start gap-1.5 px-0 text-muted-foreground"
+                data-testid={`button-tasting-${wine.id}`}
+              >
+                {tastingOpen ? <ChevronDown className="h-3.5 w-3.5" /> : <ChevronRight className="h-3.5 w-3.5" />}
+                <span className="text-xs font-medium uppercase tracking-wide">Tasting notes</span>
+              </Button>
+            </CollapsibleTrigger>
+            <CollapsibleContent className="data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 overflow-hidden">
+              <div className="space-y-2 pb-1">
+                {desc.aromas && desc.aromas.length > 0 && (
+                  <div>
+                    <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Aroma</span>
+                    <ul className="mt-0.5 space-y-0.5">
+                      {desc.aromas.map((a: string, i: number) => (
+                        <li key={i} className="text-xs text-muted-foreground flex items-start gap-1.5">
+                          <span className="text-primary mt-1 shrink-0">
+                            <svg width="5" height="5"><circle cx="2.5" cy="2.5" r="2.5" fill="currentColor"/></svg>
+                          </span>
+                          {a}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+                {desc.palate && desc.palate.length > 0 && (
+                  <div>
+                    <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Palate</span>
+                    <ul className="mt-0.5 space-y-0.5">
+                      {desc.palate.map((p: string, i: number) => (
+                        <li key={i} className="text-xs text-muted-foreground flex items-start gap-1.5">
+                          <span className="text-primary mt-1 shrink-0">
+                            <svg width="5" height="5"><circle cx="2.5" cy="2.5" r="2.5" fill="currentColor"/></svg>
+                          </span>
+                          {p}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+              </div>
+            </CollapsibleContent>
+          </Collapsible>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
+
+function DishFiltersBar({
+  activeFilters,
+  onToggle,
+  onClear,
+}: {
+  activeFilters: Set<DishFilter>;
+  onToggle: (f: DishFilter) => void;
+  onClear: () => void;
+}) {
+  const filters: { key: DishFilter; label: string; icon: typeof Leaf }[] = [
+    { key: "vegetarian", label: "Vegetarian", icon: Leaf },
+    { key: "spicy", label: "Spicy", icon: Flame },
+    { key: "seafood", label: "Seafood", icon: Fish },
+    { key: "red_meat", label: "Red Meat", icon: Beef },
+  ];
+
+  return (
+    <div className="flex items-center gap-1.5 flex-wrap">
+      {filters.map(({ key, label, icon: Icon }) => (
+        <Button
+          key={key}
+          variant={activeFilters.has(key) ? "default" : "outline"}
+          size="sm"
+          className={`gap-1 text-xs toggle-elevate ${activeFilters.has(key) ? "toggle-elevated" : ""}`}
+          onClick={() => onToggle(key)}
+          data-testid={`filter-${key}`}
+        >
+          <Icon className="h-3 w-3" />
+          {label}
+        </Button>
+      ))}
+      {activeFilters.size > 0 && (
+        <Button variant="ghost" size="sm" onClick={onClear} className="text-xs gap-1" data-testid="button-clear-dish-filters">
+          <X className="h-3 w-3" />
+          Clear
+        </Button>
+      )}
+    </div>
+  );
+}
+
+function WineColorFilterBar({
+  activeColor,
+  onChange,
+}: {
+  activeColor: WineColorFilter | null;
+  onChange: (c: WineColorFilter | null) => void;
+}) {
+  const colors: WineColorFilter[] = ["Red", "White", "Rosé", "Sparkling"];
+
+  return (
+    <div className="flex items-center gap-1.5 flex-wrap">
+      {colors.map((color) => (
+        <Button
+          key={color}
+          variant={activeColor === color ? "default" : "outline"}
+          size="sm"
+          className={`text-xs toggle-elevate ${activeColor === color ? "toggle-elevated" : ""}`}
+          onClick={() => onChange(activeColor === color ? null : color)}
+          data-testid={`filter-wine-color-${color.toLowerCase()}`}
+        >
+          {color}
+        </Button>
+      ))}
+    </div>
+  );
+}
+
+function PairingDetailPane({
+  food,
+  wineSearch,
+  onWineSearchChange,
+  wineColorFilter,
+  onWineColorChange,
+}: {
+  food: Food;
+  wineSearch: string;
+  onWineSearchChange: (s: string) => void;
+  wineColorFilter: WineColorFilter | null;
+  onWineColorChange: (c: WineColorFilter | null) => void;
+}) {
+  const { data: bottlePairings, isLoading: bottleLoading } = useQuery<PairingResult[]>({
+    queryKey: ["/api/foods", food.id, "pairings", "bottle", "classic"],
+    queryFn: async () => {
+      const res = await apiRequest("GET", `/api/foods/${food.id}/pairings?list=bottle&mode=classic`);
+      return res.json();
+    },
+  });
+
+  const { data: glassPairings, isLoading: glassLoading } = useQuery<PairingResult[]>({
+    queryKey: ["/api/foods", food.id, "pairings", "glass", "classic"],
+    queryFn: async () => {
+      const res = await apiRequest("GET", `/api/foods/${food.id}/pairings?list=glass&mode=classic`);
+      return res.json();
+    },
+  });
+
+  const isLoading = bottleLoading || glassLoading;
+
+  const allPairings = useMemo(() => {
+    const combined = [
+      ...(glassPairings || []),
+      ...(bottlePairings || []),
+    ].sort((a, b) => b.score - a.score);
+
+    const seen = new Set<string>();
+    const deduped: PairingResult[] = [];
+    for (const p of combined) {
+      if (!seen.has(p.wine.id)) {
+        seen.add(p.wine.id);
+        deduped.push(p);
+      }
+    }
+    return deduped;
+  }, [bottlePairings, glassPairings]);
+
+  const filteredPairings = useMemo(() => {
+    let results = allPairings;
+
+    if (wineSearch.trim()) {
+      const q = wineSearch.toLowerCase();
+      results = results.filter(p =>
+        p.wine.name.toLowerCase().includes(q) ||
+        p.wine.varietal.toLowerCase().includes(q)
+      );
+    }
+
+    if (wineColorFilter) {
+      results = results.filter(p => p.wine.wineType === wineColorFilter);
+    }
+
+    return results.slice(0, 3);
+  }, [allPairings, wineSearch, wineColorFilter]);
+
+  const traits = inferDishTraits(food);
+  const priceDisplay = `$${(food.priceCents / 100).toFixed(0)}`;
+
+  return (
+    <div className="space-y-4">
+      <div className="space-y-2">
+        <div className="flex items-start justify-between gap-2">
+          <h2 className="text-xl font-bold leading-tight line-clamp-2" data-testid="text-selected-dish-name">
+            {food.name}
+          </h2>
+          <span className="text-lg font-bold tabular-nums shrink-0" data-testid="text-selected-dish-price">
+            {priceDisplay}
+          </span>
+        </div>
+        <div className="flex items-center gap-1.5 flex-wrap">
+          <Badge className={`text-xs ${categoryColors[food.category] || "bg-muted"}`}>
+            {food.category}
+          </Badge>
+          {traits.spiceLevel !== "Mild" && (
+            <Badge variant="outline" className="text-xs gap-0.5">
+              <Flame className="h-3 w-3" />
+              {traits.spiceLevel}
+            </Badge>
+          )}
+          <Badge variant="outline" className="text-xs">
+            {traits.richness}
+          </Badge>
+          {traits.isVegetarian && (
+            <Badge variant="outline" className="text-xs gap-0.5">
+              <Leaf className="h-3 w-3" />
+              Vegetarian
+            </Badge>
+          )}
+        </div>
+        {food.description && (
+          <p className="text-sm text-muted-foreground">{food.description}</p>
+        )}
+      </div>
+
+      <div className="border-t pt-4 space-y-3">
+        <h3 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground flex items-center gap-1.5">
+          <Wine className="h-3.5 w-3.5" />
+          Wine Pairings
+        </h3>
+
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Input
+            type="search"
+            placeholder="Search wines..."
+            value={wineSearch}
+            onChange={(e) => onWineSearchChange(e.target.value)}
+            className="pl-9"
+            data-testid="input-wine-search"
+          />
+        </div>
+
+        <WineColorFilterBar activeColor={wineColorFilter} onChange={onWineColorChange} />
+
+        {isLoading ? (
+          <div className="space-y-3">
+            {Array.from({ length: 3 }).map((_, i) => (
+              <Skeleton key={i} className="h-32 w-full rounded-md" />
+            ))}
+          </div>
+        ) : filteredPairings.length > 0 ? (
+          <div className="space-y-3">
+            {filteredPairings.map((pairing) => (
+              <PairingWineCard
+                key={pairing.wine.id}
+                pairing={pairing}
+                wineColorFilter={null}
+              />
+            ))}
+          </div>
+        ) : (
+          <div className="text-center py-8 text-muted-foreground">
+            <p className="text-sm">No matching wine pairings found.</p>
+            {(wineSearch || wineColorFilter) && (
+              <p className="text-xs mt-1">Try adjusting your search or filters.</p>
+            )}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
 export default function FoodMenu() {
-  const [search, setSearch] = useState("");
-  const [category, setCategory] = useState<FoodCategory | "all">("all");
+  const [dishSearch, setDishSearch] = useState("");
+  const [dishFilters, setDishFilters] = useState<Set<DishFilter>>(new Set());
   const [selectedFood, setSelectedFood] = useState<Food | null>(null);
+  const [wineSearch, setWineSearch] = useState("");
+  const [wineColorFilter, setWineColorFilter] = useState<WineColorFilter | null>(null);
+
+  const isMobile = useIsMobile();
 
   const { data: foods, isLoading } = useQuery<Food[]>({
     queryKey: ["/api/foods"],
   });
 
-  const filteredFoods = foods?.filter((food) => {
-    const matchesSearch = !search || 
-      food.name.toLowerCase().includes(search.toLowerCase());
-    const matchesCategory = category === "all" || food.category === category;
-    return matchesSearch && matchesCategory;
-  }) || [];
+  const toggleDishFilter = useCallback((f: DishFilter) => {
+    setDishFilters((prev) => {
+      const next = new Set(prev);
+      if (next.has(f)) next.delete(f);
+      else next.add(f);
+      return next;
+    });
+  }, []);
 
-  const groupedFoods = foodCategories.reduce((acc, cat) => {
-    acc[cat] = filteredFoods.filter(f => f.category === cat);
-    return acc;
-  }, {} as Record<FoodCategory, Food[]>);
+  const filteredFoods = useMemo(() => {
+    if (!foods) return [];
+
+    return foods.filter((food) => {
+      if (dishSearch.trim()) {
+        const q = dishSearch.toLowerCase();
+        if (!food.name.toLowerCase().includes(q) &&
+            !(food.description || "").toLowerCase().includes(q)) {
+          return false;
+        }
+      }
+
+      if (dishFilters.size > 0) {
+        const traits = inferDishTraits(food);
+        if (dishFilters.has("vegetarian") && !traits.isVegetarian) return false;
+        if (dishFilters.has("spicy") && !traits.isSpicy) return false;
+        if (dishFilters.has("seafood") && !traits.isSeafood) return false;
+        if (dishFilters.has("red_meat") && !traits.isRedMeat) return false;
+      }
+
+      return true;
+    });
+  }, [foods, dishSearch, dishFilters]);
+
+  const groupedFoods = useMemo(() => {
+    return foodCategories.reduce((acc, cat) => {
+      acc[cat] = filteredFoods.filter(f => f.category === cat);
+      return acc;
+    }, {} as Record<FoodCategory, Food[]>);
+  }, [filteredFoods]);
+
+  const handleSelectFood = useCallback((food: Food) => {
+    setSelectedFood(food);
+    setWineSearch("");
+    setWineColorFilter(null);
+  }, []);
 
   return (
-    <div className="container mx-auto p-4 space-y-6">
-      <div className="space-y-2">
-        <h1 className="text-3xl font-bold" data-testid="text-food-menu-title">Food Menu</h1>
-        <p className="text-muted-foreground">Browse our dishes and discover perfect wine pairings</p>
+    <div className="container mx-auto p-4 space-y-4">
+      <div className="space-y-1">
+        <h1 className="text-2xl font-bold flex items-center gap-2" data-testid="text-food-menu-title">
+          <UtensilsCrossed className="h-6 w-6" />
+          Wine Pairings
+        </h1>
+        <p className="text-sm text-muted-foreground">Select a dish to discover its best wine matches</p>
       </div>
 
-      <div className="flex flex-col sm:flex-row gap-4">
-        <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Input
-            placeholder="Search dishes..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="pl-10"
-            data-testid="input-food-search"
+      <div className={`flex gap-6 ${isMobile ? "flex-col" : "flex-row"}`}>
+        <div className={`${isMobile ? "w-full" : "w-[380px]"} shrink-0 space-y-3`}>
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input
+              type="search"
+              placeholder="Search dishes..."
+              value={dishSearch}
+              onChange={(e) => setDishSearch(e.target.value)}
+              className="pl-9"
+              data-testid="input-dish-search"
+            />
+          </div>
+
+          <DishFiltersBar
+            activeFilters={dishFilters}
+            onToggle={toggleDishFilter}
+            onClear={() => setDishFilters(new Set())}
           />
-        </div>
-        <Select 
-          value={category} 
-          onValueChange={(v) => setCategory(v as FoodCategory | "all")}
-        >
-          <SelectTrigger className="w-full sm:w-[200px]" data-testid="select-food-category">
-            <SelectValue placeholder="All Categories" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All Categories</SelectItem>
-            {foodCategories.map((cat) => (
-              <SelectItem key={cat} value={cat}>{cat}</SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </div>
 
-      {isLoading ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {Array.from({ length: 9 }).map((_, i) => (
-            <Skeleton key={i} className="h-24 w-full" />
-          ))}
-        </div>
-      ) : (
-        <div className="space-y-8">
-          {foodCategories.map((cat) => {
-            const items = groupedFoods[cat];
-            if (category !== "all" && category !== cat) return null;
-            if (items.length === 0) return null;
-            
-            return (
-              <section key={cat}>
-                <h2 
-                  className="text-xl font-semibold mb-4 border-b pb-2"
-                  data-testid={`text-category-${cat.replace(/\s+/g, "-").toLowerCase()}`}
-                >
-                  {cat}
-                </h2>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {items.map((food) => (
-                    <FoodCard key={food.id} food={food} onClick={setSelectedFood} />
-                  ))}
+          {isLoading ? (
+            <div className="space-y-2">
+              {Array.from({ length: 8 }).map((_, i) => (
+                <Skeleton key={i} className="h-16 w-full rounded-md" />
+              ))}
+            </div>
+          ) : (
+            <div className={`${isMobile ? "" : "max-h-[calc(100vh-220px)]"} overflow-y-auto pr-1`} data-testid="dish-list">
+              {foodCategories.map((cat) => {
+                const items = groupedFoods[cat];
+                if (items.length === 0) return null;
+
+                return (
+                  <div key={cat} className="mb-4">
+                    <h3
+                      className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-1 px-3"
+                      data-testid={`text-category-${cat.replace(/\s+/g, "-").toLowerCase()}`}
+                    >
+                      {cat}
+                    </h3>
+                    <div className="space-y-0.5">
+                      {items.map((food) => (
+                        <DishListItem
+                          key={food.id}
+                          food={food}
+                          isSelected={selectedFood?.id === food.id}
+                          onClick={() => handleSelectFood(food)}
+                        />
+                      ))}
+                    </div>
+                  </div>
+                );
+              })}
+
+              {filteredFoods.length === 0 && (
+                <div className="text-center py-8 text-muted-foreground">
+                  <p className="text-sm">No dishes match your filters.</p>
                 </div>
-              </section>
-            );
-          })}
-          
-          {filteredFoods.length === 0 && (
-            <div className="text-center py-12 text-muted-foreground">
-              <p>No dishes found matching your criteria.</p>
+              )}
             </div>
           )}
         </div>
-      )}
 
-      <DishDetailModal
-        food={selectedFood}
-        open={!!selectedFood}
-        onOpenChange={(open) => !open && setSelectedFood(null)}
-      />
+        <div className="flex-1 min-w-0">
+          {selectedFood ? (
+            <div className={`${isMobile ? "" : "sticky top-20 z-30"}`}>
+              <Card>
+                <CardContent className="p-5">
+                  <PairingDetailPane
+                    food={selectedFood}
+                    wineSearch={wineSearch}
+                    onWineSearchChange={setWineSearch}
+                    wineColorFilter={wineColorFilter}
+                    onWineColorChange={setWineColorFilter}
+                  />
+                </CardContent>
+              </Card>
+            </div>
+          ) : (
+            <div className="flex flex-col items-center justify-center py-16 text-center" data-testid="empty-pairing-state">
+              <div className="rounded-full bg-muted p-4 mb-4">
+                <Wine className="h-8 w-8 text-muted-foreground" />
+              </div>
+              <h3 className="font-semibold text-lg mb-1">Select a Dish</h3>
+              <p className="text-muted-foreground text-sm max-w-sm">
+                Choose a dish from the list to see its top wine pairings with detailed tasting notes and explanations.
+              </p>
+            </div>
+          )}
+        </div>
+      </div>
     </div>
   );
 }
