@@ -2,9 +2,15 @@ import { useQuery } from "@tanstack/react-query";
 import { Badge } from "@/components/ui/badge";
 import { Link } from "wouter";
 import type { Wine } from "@shared/schema";
-import type { Food } from "@shared/foodSchema";
-import { getFoodPairingsForWine } from "@shared/pairingRules";
 import { UtensilsCrossed } from "lucide-react";
+import { apiRequest } from "@/lib/queryClient";
+
+interface FoodPairingResult {
+  food: { id: string; name: string; category: string; priceCents: number };
+  score: number;
+  explanation: string;
+  whyItWorks: string[];
+}
 
 interface WineFoodPairingsProps {
   wine: Wine;
@@ -13,14 +19,16 @@ interface WineFoodPairingsProps {
 }
 
 export function WineFoodPairings({ wine, maxItems = 3, isGlassWine = false }: WineFoodPairingsProps) {
-  const { data: foods } = useQuery<Food[]>({
-    queryKey: ["/api/foods"],
+  const listType = isGlassWine ? "glass" : "bottle";
+  const { data: pairings } = useQuery<FoodPairingResult[]>({
+    queryKey: ["/api/wines", wine.id, "pairings", listType],
+    queryFn: async () => {
+      const res = await apiRequest("GET", `/api/wines/${wine.id}/pairings?list=${listType}&mode=classic`);
+      return res.json();
+    },
   });
 
-  if (!foods || foods.length === 0) return null;
-
-  const pairings = getFoodPairingsForWine(wine, foods);
-  if (pairings.length === 0) return null;
+  if (!pairings || pairings.length === 0) return null;
 
   const displayedPairings = pairings.slice(0, maxItems);
   const remainingCount = pairings.length - maxItems;
@@ -32,7 +40,7 @@ export function WineFoodPairings({ wine, maxItems = 3, isGlassWine = false }: Wi
         <span className="text-xs text-muted-foreground font-medium">Pairs With</span>
       </div>
       <div className="flex flex-wrap gap-1">
-        {displayedPairings.map(({ food }) => (
+        {displayedPairings.map(({ food, score }) => (
           <Link key={food.id} href={`/food/${food.id}`}>
             <Badge 
               variant="outline" 
@@ -40,6 +48,7 @@ export function WineFoodPairings({ wine, maxItems = 3, isGlassWine = false }: Wi
               data-testid={`badge-food-pair-${wine.id}-${food.id}`}
             >
               {food.name.replace(" (GF)", "")}
+              <span className="ml-1 opacity-60">{Math.round(score * 100)}%</span>
             </Badge>
           </Link>
         ))}

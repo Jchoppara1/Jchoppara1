@@ -17,9 +17,26 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { Search, Plus, Wine as WineIcon, Pencil, Trash2, X, Filter, GlassWater, Grape } from "lucide-react";
+import { Search, Plus, Wine as WineIcon, Pencil, Trash2, X, Filter, GlassWater, Grape, Droplets, Flame } from "lucide-react";
 import { formatPrice } from "@shared/wineRules";
 import { WineFoodPairings } from "@/components/wine-food-pairings";
+
+interface EnrichedWine extends Wine {
+  profile?: {
+    body: string;
+    acidity: string;
+    tannin: string;
+    sweetness: string;
+    oak: string;
+    flavorNotes: string[];
+  };
+  wineDescription?: {
+    headline: string;
+    aromas: [string, string, string];
+    palate: [string, string, string];
+    servingSuggestions: string[];
+  };
+}
 
 const formSchema = z.object({
   name: z.string().min(1, "Name is required").max(200),
@@ -58,11 +75,13 @@ function WineCardSkeleton() {
 function WineCard({ 
   wine, 
   onEdit, 
-  onDelete 
+  onDelete,
+  isGlass,
 }: { 
-  wine: Wine; 
-  onEdit: (wine: Wine) => void;
+  wine: EnrichedWine; 
+  onEdit: (wine: EnrichedWine) => void;
   onDelete: (id: string) => void;
+  isGlass?: boolean;
 }) {
   const wineTypeColors: Record<string, string> = {
     Red: "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300",
@@ -78,6 +97,9 @@ function WineCard({
     "$$$$": "bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-300",
   };
 
+  const profile = wine.profile;
+  const desc = wine.wineDescription;
+
   return (
     <Card className="overflow-visible hover-elevate group">
       <CardHeader className="pb-3">
@@ -89,6 +111,11 @@ function WineCard({
             <p className="text-sm text-muted-foreground mt-1">
               {wine.varietal}
             </p>
+            {desc && (
+              <p className="text-xs text-muted-foreground mt-1 italic" data-testid={`text-wine-headline-${wine.id}`}>
+                {desc.headline}
+              </p>
+            )}
           </div>
           <div className="flex items-center gap-1">
             <span className="text-lg font-bold tabular-nums" data-testid={`text-wine-price-${wine.id}`}>
@@ -99,8 +126,7 @@ function WineCard({
         <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity absolute top-3 right-3">
           <Button 
             size="icon" 
-            variant="ghost" 
-            className="h-8 w-8"
+            variant="ghost"
             onClick={() => onEdit(wine)}
             data-testid={`button-edit-wine-${wine.id}`}
           >
@@ -111,7 +137,7 @@ function WineCard({
               <Button 
                 size="icon" 
                 variant="ghost" 
-                className="h-8 w-8 text-destructive hover:text-destructive"
+                className="text-destructive"
                 data-testid={`button-delete-wine-${wine.id}`}
               >
                 <Trash2 className="h-4 w-4" />
@@ -128,7 +154,7 @@ function WineCard({
                 <AlertDialogCancel>Cancel</AlertDialogCancel>
                 <AlertDialogAction 
                   onClick={() => onDelete(wine.id)}
-                  className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                  className="bg-destructive text-destructive-foreground"
                 >
                   Delete
                 </AlertDialogAction>
@@ -158,23 +184,34 @@ function WineCard({
           >
             {wine.priceCategory}
           </Badge>
-          {wine.foodPairings.slice(0, 3).map((pairing) => (
-            <Badge 
-              key={pairing} 
-              variant="outline" 
-              className="text-xs"
-              data-testid={`badge-pairing-${wine.id}-${pairing}`}
-            >
-              {pairing}
-            </Badge>
-          ))}
-          {wine.foodPairings.length > 3 && (
-            <Badge variant="outline" className="text-xs">
-              +{wine.foodPairings.length - 3}
-            </Badge>
+          {profile && (
+            <>
+              <Badge variant="outline" className="text-xs" data-testid={`badge-body-${wine.id}`}>
+                {profile.body}
+              </Badge>
+              <Badge variant="outline" className="text-xs" data-testid={`badge-acidity-${wine.id}`}>
+                <Droplets className="h-3 w-3 mr-1" />
+                {profile.acidity} acid
+              </Badge>
+              {profile.tannin !== "none" && (
+                <Badge variant="outline" className="text-xs" data-testid={`badge-tannin-${wine.id}`}>
+                  <Flame className="h-3 w-3 mr-1" />
+                  {profile.tannin} tannin
+                </Badge>
+              )}
+            </>
           )}
         </div>
-        <WineFoodPairings wine={wine} maxItems={3} />
+        {profile && profile.flavorNotes.length > 0 && (
+          <div className="flex flex-wrap gap-1" data-testid={`text-flavor-notes-${wine.id}`}>
+            {profile.flavorNotes.slice(0, 4).map((note) => (
+              <span key={note} className="text-xs text-muted-foreground">
+                {note}{profile.flavorNotes.indexOf(note) < Math.min(profile.flavorNotes.length, 4) - 1 ? " ·" : ""}
+              </span>
+            ))}
+          </div>
+        )}
+        <WineFoodPairings wine={wine} maxItems={3} isGlassWine={isGlass} />
       </CardContent>
     </Card>
   );
@@ -485,15 +522,15 @@ export default function Home() {
   const { toast } = useToast();
   const [filters, setFilters] = useState<WineFilters>({});
   const [isFormOpen, setIsFormOpen] = useState(false);
-  const [editingWine, setEditingWine] = useState<Wine | null>(null);
+  const [editingWine, setEditingWine] = useState<EnrichedWine | null>(null);
   const [showMobileFilters, setShowMobileFilters] = useState(false);
   const [viewMode, setViewMode] = useState<WineViewMode>("bottle");
 
-  const { data: bottleWines, isLoading: bottleLoading } = useQuery<Wine[]>({
+  const { data: bottleWines, isLoading: bottleLoading } = useQuery<EnrichedWine[]>({
     queryKey: ["/api/wines"],
   });
 
-  const { data: glassWines, isLoading: glassLoading } = useQuery<Wine[]>({
+  const { data: glassWines, isLoading: glassLoading } = useQuery<EnrichedWine[]>({
     queryKey: ["/api/wines-by-glass"],
   });
 
@@ -572,7 +609,7 @@ export default function Home() {
     },
   });
 
-  const handleEdit = (wine: Wine) => {
+  const handleEdit = (wine: EnrichedWine) => {
     setEditingWine(wine);
   };
 
@@ -697,6 +734,7 @@ export default function Home() {
                     wine={wine}
                     onEdit={handleEdit}
                     onDelete={handleDelete}
+                    isGlass={viewMode === "glass"}
                   />
                 ))}
               </div>

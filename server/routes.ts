@@ -25,7 +25,12 @@ export async function registerRoutes(
       });
       
       const wines = await storage.listWines(filters);
-      res.json(wines);
+      const enriched = wines.map(wine => ({
+        ...wine,
+        profile: storage.getWineProfile(wine.id, "bottle"),
+        wineDescription: storage.getWineDescription(wine.id, "bottle"),
+      }));
+      res.json(enriched);
     } catch (error) {
       if (error instanceof z.ZodError) {
         res.status(400).json({ error: "Invalid filter parameters", details: error.errors });
@@ -101,7 +106,12 @@ export async function registerRoutes(
       });
       
       const wines = await storage.listWinesByGlass(filters);
-      res.json(wines);
+      const enriched = wines.map(wine => ({
+        ...wine,
+        profile: storage.getWineProfile(wine.id, "glass"),
+        wineDescription: storage.getWineDescription(wine.id, "glass"),
+      }));
+      res.json(enriched);
     } catch (error) {
       if (error instanceof z.ZodError) {
         res.status(400).json({ error: "Invalid filter parameters", details: error.errors });
@@ -152,6 +162,41 @@ export async function registerRoutes(
     } catch (error) {
       res.status(500).json({ error: "Failed to fetch food" });
     }
+  });
+
+  app.get("/api/wines/:id/profile", async (req, res) => {
+    const listType = (req.query.list as string) === "glass" ? "glass" : "bottle";
+    const profile = storage.getWineProfile(req.params.id, listType);
+    const description = storage.getWineDescription(req.params.id, listType);
+    if (!profile) return res.status(404).json({ error: "Wine profile not found" });
+    res.json({ profile, description });
+  });
+
+  app.get("/api/wines/:id/pairings", async (req, res) => {
+    const listType = (req.query.list as string) === "glass" ? "glass" : "bottle";
+    const mode = (req.query.mode as string) === "adventurous" ? "adventurous" : "classic";
+    const pairings = storage.getPairingsForWine(req.params.id, listType, mode);
+    res.json(pairings);
+  });
+
+  app.get("/api/foods/:id/pairings", async (req, res) => {
+    const listType = (req.query.list as string) === "glass" ? "glass" : "bottle";
+    const mode = (req.query.mode as string) === "adventurous" ? "adventurous" : "classic";
+    const pairings = storage.getPairingsForFood(req.params.id, listType, mode);
+    res.json(pairings.map(p => ({
+      wine: p.wine,
+      score: p.score,
+      explanation: p.explanation,
+      whyItWorks: p.whyItWorks,
+      avoidNote: p.avoidNote,
+      breakdown: p.breakdown,
+    })));
+  });
+
+  app.get("/api/foods/:id/dish-profile", async (req, res) => {
+    const profile = storage.getDishProfile(req.params.id);
+    if (!profile) return res.status(404).json({ error: "Dish profile not found" });
+    res.json(profile);
   });
 
   return httpServer;

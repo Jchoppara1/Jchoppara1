@@ -1,13 +1,31 @@
+import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useRoute, Link } from "wouter";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { ArrowLeft, Wine } from "lucide-react";
+import { ArrowLeft, Wine, Sparkles, BookOpen, Check } from "lucide-react";
 import type { Food } from "@shared/foodSchema";
 import type { Wine as WineType } from "@shared/schema";
-import { getWinePairingsForFood } from "@shared/pairingRules";
+import { apiRequest } from "@/lib/queryClient";
+
+interface PairingResult {
+  wine: WineType;
+  score: number;
+  explanation: string;
+  whyItWorks: string[];
+  avoidNote?: string;
+  breakdown: {
+    intensityMatch: number;
+    acidFat: number;
+    tanninProtein: number;
+    spiceHandling: number;
+    sauceMatch: number;
+    regionalBonus: number;
+    total: number;
+  };
+}
 
 const categoryColors: Record<string, string> = {
   "Mazzes": "bg-amber-500/20 text-amber-700 dark:text-amber-300",
@@ -23,31 +41,135 @@ const wineTypeColors: Record<string, string> = {
   Sparkling: "bg-sky-500/20 text-sky-700 dark:text-sky-300",
 };
 
-const priceCategoryColors: Record<string, string> = {
-  "$": "bg-green-500/20 text-green-700 dark:text-green-300",
-  "$$": "bg-blue-500/20 text-blue-700 dark:text-blue-300",
-  "$$$": "bg-purple-500/20 text-purple-700 dark:text-purple-300",
-  "$$$$": "bg-amber-500/20 text-amber-700 dark:text-amber-300",
-};
+function ScoreBar({ value, label }: { value: number; label: string }) {
+  const pct = Math.round(value * 100);
+  const color = pct >= 70 ? "bg-emerald-500" : pct >= 40 ? "bg-amber-500" : "bg-red-400";
+  return (
+    <div className="flex items-center gap-2">
+      <span className="text-xs text-muted-foreground w-24 shrink-0">{label}</span>
+      <div className="flex-1 h-1.5 bg-muted rounded-full overflow-hidden">
+        <div className={`h-full rounded-full ${color}`} style={{ width: `${pct}%` }} />
+      </div>
+      <span className="text-xs tabular-nums w-8 text-right text-muted-foreground">{pct}%</span>
+    </div>
+  );
+}
+
+function PairingCard({ pairing, listLabel }: { pairing: PairingResult; listLabel: string }) {
+  const [showDetails, setShowDetails] = useState(false);
+  const score = Math.round(pairing.score * 100);
+  const scoreColor = score >= 70 ? "text-emerald-600 dark:text-emerald-400" : score >= 50 ? "text-amber-600 dark:text-amber-400" : "text-muted-foreground";
+
+  return (
+    <Card
+      className="overflow-visible"
+      data-testid={`card-pairing-${pairing.wine.id}`}
+    >
+      <CardContent className="p-4 space-y-3">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div className="space-y-2">
+            <div className="flex items-center gap-2 flex-wrap">
+              <h3
+                className="font-semibold"
+                data-testid={`text-pairing-name-${pairing.wine.id}`}
+              >
+                {pairing.wine.name}
+              </h3>
+              <Badge className={wineTypeColors[pairing.wine.wineType]} data-testid={`badge-pairing-type-${pairing.wine.id}`}>
+                {pairing.wine.wineType}
+              </Badge>
+              <Badge variant="outline" className="text-xs">
+                {listLabel}
+              </Badge>
+            </div>
+            <p className="text-sm text-muted-foreground">{pairing.wine.varietal}</p>
+          </div>
+          <div className="flex items-center gap-3 shrink-0">
+            <span className={`text-lg font-bold tabular-nums ${scoreColor}`} data-testid={`text-pairing-score-${pairing.wine.id}`}>
+              {score}%
+            </span>
+            <span className="text-lg font-semibold" data-testid={`text-pairing-price-${pairing.wine.id}`}>
+              ${(pairing.wine.priceCents / 100).toFixed(0)}
+            </span>
+          </div>
+        </div>
+
+        <p className="text-sm text-muted-foreground" data-testid={`text-pairing-explanation-${pairing.wine.id}`}>
+          {pairing.explanation}
+        </p>
+
+        {pairing.whyItWorks.length > 0 && (
+          <div className="space-y-1">
+            {pairing.whyItWorks.map((reason, i) => (
+              <div key={i} className="flex items-start gap-2 text-sm">
+                <Check className="h-3.5 w-3.5 text-emerald-500 mt-0.5 shrink-0" />
+                <span className="text-muted-foreground">{reason}</span>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {pairing.avoidNote && (
+          <p className="text-xs text-amber-600 dark:text-amber-400">
+            Note: {pairing.avoidNote}
+          </p>
+        )}
+
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => setShowDetails(!showDetails)}
+          data-testid={`button-toggle-details-${pairing.wine.id}`}
+        >
+          <BookOpen className="h-3.5 w-3.5 mr-1.5" />
+          {showDetails ? "Hide" : "Show"} Score Breakdown
+        </Button>
+
+        {showDetails && (
+          <div className="space-y-2 pt-2 border-t">
+            <ScoreBar value={pairing.breakdown.intensityMatch} label="Intensity" />
+            <ScoreBar value={pairing.breakdown.acidFat} label="Acid / Fat" />
+            <ScoreBar value={pairing.breakdown.tanninProtein} label="Tannin / Protein" />
+            <ScoreBar value={pairing.breakdown.spiceHandling} label="Spice" />
+            <ScoreBar value={pairing.breakdown.sauceMatch} label="Sauce" />
+            <ScoreBar value={pairing.breakdown.regionalBonus} label="Regional" />
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
 
 export default function FoodDetail() {
   const [, params] = useRoute("/food/:id");
   const foodId = params?.id;
+  const [mode, setMode] = useState<"classic" | "adventurous">("classic");
 
   const { data: food, isLoading: foodLoading } = useQuery<Food>({
     queryKey: ["/api/foods", foodId],
     enabled: !!foodId,
   });
 
-  const { data: bottleWines, isLoading: bottleWinesLoading } = useQuery<WineType[]>({
-    queryKey: ["/api/wines"],
+  const { data: glassPairings, isLoading: glassLoading, isFetching: glassFetching } = useQuery<PairingResult[]>({
+    queryKey: ["/api/foods", foodId, "pairings", "glass", mode],
+    queryFn: async () => {
+      const res = await apiRequest("GET", `/api/foods/${foodId}/pairings?list=glass&mode=${mode}`);
+      return res.json();
+    },
+    enabled: !!foodId,
   });
 
-  const { data: glassWines, isLoading: glassWinesLoading } = useQuery<WineType[]>({
-    queryKey: ["/api/wines-by-glass"],
+  const { data: bottlePairings, isLoading: bottleLoading, isFetching: bottleFetching } = useQuery<PairingResult[]>({
+    queryKey: ["/api/foods", foodId, "pairings", "bottle", mode],
+    queryFn: async () => {
+      const res = await apiRequest("GET", `/api/foods/${foodId}/pairings?list=bottle&mode=${mode}`);
+      return res.json();
+    },
+    enabled: !!foodId,
   });
 
-  const isLoading = foodLoading || bottleWinesLoading || glassWinesLoading;
+  const isLoading = foodLoading || glassLoading || bottleLoading;
+  const isSwitching = glassFetching || bottleFetching;
 
   if (isLoading) {
     return (
@@ -72,8 +194,6 @@ export default function FoodDetail() {
     );
   }
 
-  const bottlePairings = bottleWines ? getWinePairingsForFood(food, bottleWines) : [];
-  const glassPairings = glassWines ? getWinePairingsForFood(food, glassWines) : [];
   const priceDisplay = `$${(food.priceCents / 100).toFixed(0)}`;
 
   return (
@@ -89,20 +209,20 @@ export default function FoodDetail() {
         <CardContent className="p-6">
           <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
             <div className="space-y-3">
-              <h1 
+              <h1
                 className="text-3xl font-bold"
                 data-testid="text-food-detail-name"
               >
                 {food.name}
               </h1>
-              <Badge 
+              <Badge
                 className={`${categoryColors[food.category] || "bg-muted"}`}
                 data-testid="badge-food-detail-category"
               >
                 {food.category}
               </Badge>
             </div>
-            <div 
+            <div
               className="text-3xl font-bold"
               data-testid="text-food-detail-price"
             >
@@ -113,112 +233,61 @@ export default function FoodDetail() {
       </Card>
 
       <div className="space-y-4">
-        <div className="flex items-center gap-2">
-          <Wine className="h-5 w-5 text-primary" />
-          <h2 className="text-xl font-semibold">Recommended Wine Pairings</h2>
+        <div className="flex items-center justify-between gap-4 flex-wrap">
+          <div className="flex items-center gap-2">
+            <Wine className="h-5 w-5 text-primary" />
+            <h2 className="text-xl font-semibold">Recommended Wine Pairings</h2>
+          </div>
+          <div className="flex items-center border rounded-md overflow-hidden">
+            <Button
+              variant={mode === "classic" ? "default" : "ghost"}
+              size="sm"
+              className="rounded-none border-0"
+              onClick={() => setMode("classic")}
+              data-testid="button-mode-classic"
+            >
+              <BookOpen className="h-3.5 w-3.5 mr-1.5" />
+              Classic
+            </Button>
+            <Button
+              variant={mode === "adventurous" ? "default" : "ghost"}
+              size="sm"
+              className="rounded-none border-0"
+              onClick={() => setMode("adventurous")}
+              data-testid="button-mode-adventurous"
+            >
+              <Sparkles className="h-3.5 w-3.5 mr-1.5" />
+              Adventurous
+            </Button>
+          </div>
         </div>
 
-        {(bottlePairings.length > 0 || glassPairings.length > 0) ? (
+        {isSwitching && (
+          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+            <div className="h-4 w-4 border-2 border-muted-foreground/30 border-t-muted-foreground rounded-full animate-spin" />
+            Updating recommendations...
+          </div>
+        )}
+
+        {((glassPairings && glassPairings.length > 0) || (bottlePairings && bottlePairings.length > 0)) ? (
           <div className="space-y-6">
-            {glassPairings.length > 0 && (
+            {glassPairings && glassPairings.length > 0 && (
               <div className="space-y-3">
                 <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wide">By the Glass</h3>
                 <div className="grid gap-3">
-                  {glassPairings.slice(0, 3).map(({ wine, note }) => (
-                    <Link key={wine.id} href="/?view=glass">
-                      <Card 
-                        className="hover-elevate cursor-pointer"
-                        data-testid={`card-glass-pairing-${wine.id}`}
-                      >
-                        <CardContent className="p-4">
-                          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                            <div className="space-y-2">
-                              <div className="flex items-center gap-2 flex-wrap">
-                                <h3 
-                                  className="font-semibold"
-                                  data-testid={`text-glass-pairing-name-${wine.id}`}
-                                >
-                                  {wine.name}
-                                </h3>
-                                <Badge 
-                                  className={wineTypeColors[wine.wineType]}
-                                  data-testid={`badge-glass-type-${wine.id}`}
-                                >
-                                  {wine.wineType}
-                                </Badge>
-                                <Badge variant="outline" className="text-xs">
-                                  Glass
-                                </Badge>
-                              </div>
-                              <p 
-                                className="text-sm text-muted-foreground"
-                                data-testid={`text-glass-note-${wine.id}`}
-                              >
-                                {note}
-                              </p>
-                            </div>
-                            <div 
-                              className="text-lg font-semibold shrink-0"
-                              data-testid={`text-glass-price-${wine.id}`}
-                            >
-                              ${(wine.priceCents / 100).toFixed(0)}
-                            </div>
-                          </div>
-                        </CardContent>
-                      </Card>
-                    </Link>
+                  {glassPairings.map((p) => (
+                    <PairingCard key={p.wine.id} pairing={p} listLabel="Glass" />
                   ))}
                 </div>
               </div>
             )}
 
-            {bottlePairings.length > 0 && (
+            {bottlePairings && bottlePairings.length > 0 && (
               <div className="space-y-3">
                 <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wide">By the Bottle</h3>
                 <div className="grid gap-3">
-                  {bottlePairings.slice(0, 3).map(({ wine, note }) => (
-                    <Link key={wine.id} href="/?view=bottle">
-                      <Card 
-                        className="hover-elevate cursor-pointer"
-                        data-testid={`card-bottle-pairing-${wine.id}`}
-                      >
-                        <CardContent className="p-4">
-                          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                            <div className="space-y-2">
-                              <div className="flex items-center gap-2 flex-wrap">
-                                <h3 
-                                  className="font-semibold"
-                                  data-testid={`text-bottle-pairing-name-${wine.id}`}
-                                >
-                                  {wine.name}
-                                </h3>
-                                <Badge 
-                                  className={wineTypeColors[wine.wineType]}
-                                  data-testid={`badge-bottle-type-${wine.id}`}
-                                >
-                                  {wine.wineType}
-                                </Badge>
-                                <Badge variant="outline" className="text-xs">
-                                  Bottle
-                                </Badge>
-                              </div>
-                              <p 
-                                className="text-sm text-muted-foreground"
-                                data-testid={`text-bottle-note-${wine.id}`}
-                              >
-                                {note}
-                              </p>
-                            </div>
-                            <div 
-                              className="text-lg font-semibold shrink-0"
-                              data-testid={`text-bottle-price-${wine.id}`}
-                            >
-                              ${(wine.priceCents / 100).toFixed(0)}
-                            </div>
-                          </div>
-                        </CardContent>
-                      </Card>
-                    </Link>
+                  {bottlePairings.map((p) => (
+                    <PairingCard key={p.wine.id} pairing={p} listLabel="Bottle" />
                   ))}
                 </div>
               </div>

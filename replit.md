@@ -38,9 +38,14 @@ Preferred communication style: Simple, everyday language.
 - **Current Storage**: In-memory storage implementation with interface for future database integration
 
 ### Business Logic
-- **Wine Rules**: Automatic derivation of food pairings based on wine type and varietal
-- **Price Categories**: Automatic categorization ($, $$, $$$, $$$$) based on price in cents
-- **Computed Fields**: Applied server-side before storage using shared/wineRules.ts
+- **Wine Profile Inference**: Grape variety database drives body/acidity/tannin/sweetness/oak profiling (shared/wineProfile.ts)
+- **Structured Descriptions**: Auto-generated headline, aromas, palate notes, serving suggestions per wine
+- **Scoring-Based Pairings**: 6-dimension weighted algorithm (intensity 0.25, acid-fat 0.2, tannin-protein 0.2, spice 0.15, sauce 0.1, regional 0.1) in shared/pairingEngine.ts
+- **Classic vs Adventurous Modes**: Stricter thresholds vs wider matching with novelty bonus
+- **Price Categories**: Percentile-based normalization ($, $$, $$$, $$$$) from actual data distribution
+- **"Why it Works" Explanations**: Each pairing includes scoring breakdown and natural language reasons
+- **Wine Rules**: Legacy food pairing derivation based on wine type and varietal (shared/wineRules.ts)
+- **Computed Fields**: Applied server-side before storage
 
 ### Build System
 - **Development**: Vite dev server with HMR, proxied through Express
@@ -64,8 +69,10 @@ server/           # Express backend
 shared/           # Shared code between client and server
   schema.ts       # Wine schema and Zod validators
   foodSchema.ts   # Food schema with categories and filters
-  wineRules.ts    # Business logic for wine categorization
-  pairingRules.ts # Bidirectional wine/food pairing logic
+  wineRules.ts    # Legacy business logic for wine categorization
+  wineProfile.ts  # Wine profile inference engine and description generator
+  pairingEngine.ts # Scoring-based pairing algorithm with explanations
+  pairingRules.ts # Legacy bidirectional wine/food pairing logic
 ```
 
 ### Routes

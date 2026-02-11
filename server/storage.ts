@@ -1,6 +1,8 @@
 import { type Wine, type InsertWine, type WineFilters, type User, type InsertUser } from "@shared/schema";
 import { type Food, type InsertFood, type FoodFilters, type FoodCategory } from "@shared/foodSchema";
 import { applyComputedFields } from "@shared/wineRules";
+import { inferWineProfile, buildWineDescription, getPriceTierFromPercentile, type WineProfile, type WineDescription } from "@shared/wineProfile";
+import { rankWinesForFood, rankFoodsForWine, inferDishProfile, type PairingResult, type DishProfile } from "@shared/pairingEngine";
 import { randomUUID } from "crypto";
 import * as fs from "fs";
 import * as path from "path";
@@ -21,6 +23,14 @@ export interface IStorage {
 
   listFoods(filters?: FoodFilters): Promise<Food[]>;
   getFood(id: string): Promise<Food | undefined>;
+
+  getWineProfile(wineId: string, listType?: "bottle" | "glass"): WineProfile | undefined;
+  getWineDescription(wineId: string, listType?: "bottle" | "glass"): WineDescription | undefined;
+  getPairingsForFood(foodId: string, listType: "bottle" | "glass", mode: "classic" | "adventurous"): PairingResult[];
+  getPairingsForWine(wineId: string, listType: "bottle" | "glass", mode: "classic" | "adventurous"): { food: Food; score: number; explanation: string; whyItWorks: string[] }[];
+  getDishProfile(foodId: string): DishProfile | undefined;
+  getAllBottlePrices(): number[];
+  getAllGlassPrices(): number[];
 }
 
 function parseCSV(content: string): Record<string, string>[] {
@@ -147,15 +157,43 @@ export class MemStorage implements IStorage {
   private wines: Map<string, Wine>;
   private winesByGlass: Map<string, Wine>;
   private foods: Map<string, Food>;
+  private wineProfiles: Map<string, WineProfile>;
+  private wineDescriptions: Map<string, WineDescription>;
+  private pairingCache: Map<string, any>;
 
   constructor() {
     this.users = new Map();
     this.wines = new Map();
     this.winesByGlass = new Map();
     this.foods = new Map();
+    this.wineProfiles = new Map();
+    this.wineDescriptions = new Map();
+    this.pairingCache = new Map();
     this.seedWines();
     this.seedWinesByGlass();
     this.seedFoods();
+    this.recomputePriceTiers();
+  }
+
+  private recomputePriceTiers() {
+    const bottlePrices = Array.from(this.wines.values()).map(w => w.priceCents);
+    for (const [id, wine] of this.wines) {
+      const tier = getPriceTierFromPercentile(wine.priceCents, bottlePrices);
+      this.wines.set(id, { ...wine, priceCategory: tier });
+    }
+
+    const glassPrices = Array.from(this.winesByGlass.values()).map(w => w.priceCents);
+    for (const [id, wine] of this.winesByGlass) {
+      const tier = getPriceTierFromPercentile(wine.priceCents, glassPrices);
+      this.winesByGlass.set(id, { ...wine, priceCategory: tier });
+    }
+  }
+
+  private computeProfileAndDescription(wine: Wine): void {
+    const profile = inferWineProfile(wine);
+    const description = buildWineDescription(wine, profile);
+    this.wineProfiles.set(wine.id, profile);
+    this.wineDescriptions.set(wine.id, description);
   }
 
   private seedWines() {
@@ -170,7 +208,7 @@ export class MemStorage implements IStorage {
         priceCents: wine.priceCents,
       });
       
-      this.wines.set(id, {
+      const wineObj: Wine = {
         id,
         name: wine.name,
         wineType: wine.wineType,
@@ -179,7 +217,9 @@ export class MemStorage implements IStorage {
         description: wine.description || null,
         priceCategory: computed.priceCategory,
         foodPairings: computed.foodPairings,
-      });
+      };
+      this.wines.set(id, wineObj);
+      this.computeProfileAndDescription(wineObj);
     }
   }
 
@@ -299,7 +339,7 @@ export class MemStorage implements IStorage {
         priceCents: wine.priceCents,
       });
       
-      this.winesByGlass.set(id, {
+      const wineObj: Wine = {
         id,
         name: wine.name,
         wineType: wine.wineType,
@@ -308,7 +348,9 @@ export class MemStorage implements IStorage {
         description: wine.description || null,
         priceCategory: computed.priceCategory,
         foodPairings: computed.foodPairings,
-      });
+      };
+      this.winesByGlass.set(id, wineObj);
+      this.computeProfileAndDescription(wineObj);
     }
   }
 
@@ -380,6 +422,49 @@ export class MemStorage implements IStorage {
 
   async getFood(id: string): Promise<Food | undefined> {
     return this.foods.get(id);
+  }
+
+  getWineProfile(wineId: string, listType: "bottle" | "glass" = "bottle"): WineProfile | undefined {
+    return this.wineProfiles.get(wineId);
+  }
+
+  getWineDescription(wineId: string, listType: "bottle" | "glass" = "bottle"): WineDescription | undefined {
+    return this.wineDescriptions.get(wineId);
+  }
+
+  getPairingsForFood(foodId: string, listType: "bottle" | "glass" = "bottle", mode: "classic" | "adventurous" = "classic"): PairingResult[] {
+    const food = this.foods.get(foodId);
+    if (!food) return [];
+
+    const allWines = listType === "glass"
+      ? Array.from(this.winesByGlass.values())
+      : Array.from(this.wines.values());
+
+    return rankWinesForFood(food, allWines, mode, 4);
+  }
+
+  getPairingsForWine(wineId: string, listType: "bottle" | "glass" = "bottle", mode: "classic" | "adventurous" = "classic"): { food: Food; score: number; explanation: string; whyItWorks: string[] }[] {
+    const wine = listType === "glass"
+      ? this.winesByGlass.get(wineId)
+      : this.wines.get(wineId);
+    if (!wine) return [];
+
+    const allFoods = Array.from(this.foods.values());
+    return rankFoodsForWine(wine, allFoods, mode, 4);
+  }
+
+  getDishProfile(foodId: string): DishProfile | undefined {
+    const food = this.foods.get(foodId);
+    if (!food) return undefined;
+    return inferDishProfile(food);
+  }
+
+  getAllBottlePrices(): number[] {
+    return Array.from(this.wines.values()).map(w => w.priceCents);
+  }
+
+  getAllGlassPrices(): number[] {
+    return Array.from(this.winesByGlass.values()).map(w => w.priceCents);
   }
 }
 
