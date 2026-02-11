@@ -34,7 +34,7 @@ export function WineFoodPairings({ wine, maxItems = 3, isGlassWine = false }: Wi
   const remainingCount = pairings.length - maxItems;
 
   return (
-    <div className="pt-2 border-t mt-2">
+    <div className="pt-2 border-t mt-2" onClick={(e) => e.stopPropagation()}>
       <div className="flex items-center gap-1.5 mb-1.5">
         <UtensilsCrossed className="h-3 w-3 text-muted-foreground" />
         <span className="text-xs text-muted-foreground font-medium">Pairs With</span>

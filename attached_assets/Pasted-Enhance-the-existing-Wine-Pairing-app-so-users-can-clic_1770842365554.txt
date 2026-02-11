@@ -1,0 +1,90 @@
+Enhance the existing Wine Pairing app so users can click/tap on ANY dish card or wine card to view full details.
+
+DO NOT redesign the entire UI.
+DO NOT change theme colors or typography.
+Add interactive detail views cleanly and consistently.
+
+----------------------------------
+GOAL
+----------------------------------
+1) Clicking a Dish card opens a detailed view.
+2) Clicking a Wine card opens a detailed view.
+3) Must work on mobile and desktop.
+4) Smooth animation.
+5) No layout breaking or text overflow.
+
+----------------------------------
+FUNCTIONAL REQUIREMENTS
+----------------------------------
+
+DISH CARD CLICK BEHAVIOR:
+- Make the entire card clickable (cursor pointer on hover for web).
+- On click:
+   - Open a modal (desktop) OR slide-up drawer (mobile).
+- Show:
+   - Dish name
+   - Category
+   - Full description
+   - Extracted attributes (protein, sauce, spice level, richness)
+   - Top 3 wine pairings
+   - Pairing explanation for each wine
+   - “Close” button (X top right)
+
+WINE CARD CLICK BEHAVIOR:
+- Entire wine card clickable.
+- On click:
+   - Open modal/drawer.
+- Show:
+   - Wine name + vintage
+   - Region + grape(s)
+   - Price tier badge ($-$$$$)
+   - Style breakdown (body, acidity, tannin, sweetness, oak)
+   - Full tasting notes (aroma bullets + palate bullets)
+   - Best food matches
+   - Serving temperature suggestion
+   - “Close” button
+
+----------------------------------
+STATE MANAGEMENT
+----------------------------------
+- Add selectedDish state.
+- Add selectedWine state.
+- Clicking card sets state.
+- Closing modal resets state to null.
+- Ensure only one detail view is open at a time.
+
+----------------------------------
+UI IMPLEMENTATION DETAILS
+----------------------------------
+- Use smooth fade + scale animation (200–300ms).
+- Prevent background scroll when modal is open.
+- Add subtle backdrop blur or dark overlay.
+- Ensure mobile responsiveness.
+- Prevent text overflow (wrap long wine names properly).
+- Add keyboard ESC support (if web).
+
+----------------------------------
+ACCESSIBILITY
+----------------------------------
+- Modal must trap focus (if web).
+- Close on ESC.
+- Buttons must be keyboard accessible.
+
+----------------------------------
+ANIMATION RULES
+----------------------------------
+- No heavy animation libraries unless already installed.
+- Use existing animation system if present.
+- Keep transitions smooth and minimal.
+
+----------------------------------
+CLEANUP + TESTING
+----------------------------------
+- Ensure no console errors.
+- Ensure no selection highlight bugs.
+- Ensure cards remain styled consistently.
+- Test on mobile width and desktop width.
+
+After implementation:
+- Briefly summarize which files were modified.
+- Confirm app builds successfully.

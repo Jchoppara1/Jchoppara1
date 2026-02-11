@@ -4,6 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
 import { FoodCard } from "@/components/food-card";
+import { DishDetailModal } from "@/components/dish-detail-modal";
 import { Search } from "lucide-react";
 import type { Food, FoodCategory } from "@shared/foodSchema";
 
@@ -12,6 +13,7 @@ const foodCategories: FoodCategory[] = ["Mazzes", "Spreads", "Greens & Grains", 
 export default function FoodMenu() {
   const [search, setSearch] = useState("");
   const [category, setCategory] = useState<FoodCategory | "all">("all");
+  const [selectedFood, setSelectedFood] = useState<Food | null>(null);
 
   const { data: foods, isLoading } = useQuery<Food[]>({
     queryKey: ["/api/foods"],
@@ -86,7 +88,7 @@ export default function FoodMenu() {
                 </h2>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                   {items.map((food) => (
-                    <FoodCard key={food.id} food={food} />
+                    <FoodCard key={food.id} food={food} onClick={setSelectedFood} />
                   ))}
                 </div>
               </section>
@@ -100,6 +102,12 @@ export default function FoodMenu() {
           )}
         </div>
       )}
+
+      <DishDetailModal
+        food={selectedFood}
+        open={!!selectedFood}
+        onOpenChange={(open) => !open && setSelectedFood(null)}
+      />
     </div>
   );
 }

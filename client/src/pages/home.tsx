@@ -20,6 +20,7 @@ import { z } from "zod";
 import { Search, Plus, Wine as WineIcon, Pencil, Trash2, X, Filter, GlassWater, Grape, Droplets, Flame } from "lucide-react";
 import { formatPrice } from "@shared/wineRules";
 import { WineFoodPairings } from "@/components/wine-food-pairings";
+import { WineDetailModal } from "@/components/wine-detail-modal";
 
 interface EnrichedWine extends Wine {
   profile?: {
@@ -76,11 +77,13 @@ function WineCard({
   wine, 
   onEdit, 
   onDelete,
+  onSelect,
   isGlass,
 }: { 
   wine: EnrichedWine; 
   onEdit: (wine: EnrichedWine) => void;
   onDelete: (id: string) => void;
+  onSelect: (wine: EnrichedWine) => void;
   isGlass?: boolean;
 }) {
   const wineTypeColors: Record<string, string> = {
@@ -101,7 +104,14 @@ function WineCard({
   const desc = wine.wineDescription;
 
   return (
-    <Card className="overflow-visible hover-elevate group">
+    <Card
+      className="overflow-visible hover-elevate group cursor-pointer"
+      onClick={() => onSelect(wine)}
+      onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); onSelect(wine); }}}
+      role="button"
+      tabIndex={0}
+      data-testid={`card-wine-${wine.id}`}
+    >
       <CardHeader className="pb-3">
         <div className="flex items-start justify-between gap-2">
           <div className="flex-1 min-w-0">
@@ -123,7 +133,7 @@ function WineCard({
             </span>
           </div>
         </div>
-        <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity absolute top-3 right-3">
+        <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity absolute top-3 right-3" onClick={(e) => e.stopPropagation()}>
           <Button 
             size="icon" 
             variant="ghost"
@@ -523,6 +533,7 @@ export default function Home() {
   const [filters, setFilters] = useState<WineFilters>({});
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingWine, setEditingWine] = useState<EnrichedWine | null>(null);
+  const [selectedWine, setSelectedWine] = useState<EnrichedWine | null>(null);
   const [showMobileFilters, setShowMobileFilters] = useState(false);
   const [viewMode, setViewMode] = useState<WineViewMode>("bottle");
 
@@ -734,6 +745,7 @@ export default function Home() {
                     wine={wine}
                     onEdit={handleEdit}
                     onDelete={handleDelete}
+                    onSelect={setSelectedWine}
                     isGlass={viewMode === "glass"}
                   />
                 ))}
@@ -757,6 +769,13 @@ export default function Home() {
         wine={editingWine}
         onSubmit={(values) => editingWine && updateMutation.mutate({ id: editingWine.id, data: values })}
         isSubmitting={updateMutation.isPending}
+      />
+
+      <WineDetailModal
+        wine={selectedWine}
+        open={!!selectedWine}
+        onOpenChange={(open) => !open && setSelectedWine(null)}
+        isGlassWine={viewMode === "glass"}
       />
     </div>
   );
