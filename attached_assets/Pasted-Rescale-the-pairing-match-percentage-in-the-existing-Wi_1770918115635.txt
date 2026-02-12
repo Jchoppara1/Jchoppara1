@@ -1,0 +1,105 @@
+Rescale the pairing “match percentage” in the existing Wine Pairing app to be clearer and more decisive.
+
+DO NOT change the underlying pairing feature scoring rules unless needed.
+Instead, keep the raw score but add a calibration + rescaling layer that produces:
+- a more spread-out percentage distribution
+- clearer tiers (Perfect / Great / Good / Risky)
+- consistent behavior across dishes
+
+--------------------------------------------
+1) CURRENT STATE AUDIT
+--------------------------------------------
+- Locate where the pairing score is computed (raw score) and where it’s converted into a percentage for display.
+- Keep the raw score output for debugging, but change how it is mapped to UI percent.
+
+--------------------------------------------
+2) ADD A 2-STAGE SCORING OUTPUT
+--------------------------------------------
+For each wine-dish pairing, output BOTH:
+A) rawScore (unbounded or current numeric score)
+B) matchScore (0–100 calibrated for display)
+C) confidenceTier (Perfect/Great/Good/Risky/Avoid)
+D) reasonHighlights (top 2 positive + top 1 negative)
+
+Do not remove rawScore; store it for internal use.
+
+--------------------------------------------
+3) CALIBRATION / RESCALING (MAKE IT CLEAR-CUT)
+--------------------------------------------
+Implement a calibration function that maps rawScore -> matchScore (0–100) with more separation:
+
+Step 1: Standardize within each dish
+- For a given dish, you have N candidate wines with rawScore.
+- Compute mean and std (or robust median and MAD).
+- Compute zScore = (rawScore - mean) / std  (or robust equivalent).
+- This makes the distribution per dish comparable.
+
+Step 2: Convert zScore -> percentage using a logistic curve to spread mid-scores:
+- p = 100 * sigmoid(k * zScore)
+- Choose k around 1.2–1.8 so top options become meaningfully higher than mid pack.
+- Clamp p to [1, 99] to avoid hard 0/100.
+
+Step 3: Add a “top-pick boost” so the best pairing feels decisive:
+- Sort wines by rawScore for the dish.
+- Add small boost to rank #1 and #2 only (e.g., +6 for #1, +3 for #2) BUT cap at 99.
+- Add a penalty if any “hard mismatch rules” triggered (e.g., -8 to -20 depending on severity).
+This ensures obvious mismatches don’t show high percentages.
+
+Step 4: Optional global calibration
+- Across the full wine list, track percentiles of zScore or p and ensure:
+  - top pick is often 88–97
+  - second pick 80–92
+  - third pick 72–88
+  - mid pack 45–70
+  - poor fits 15–44
+Adjust k and boosts until this holds for typical menus.
+
+--------------------------------------------
+4) CONFIDENCE TIERS (USER-FRIENDLY)
+--------------------------------------------
+Define tiers from matchScore:
+- 92–99: “Perfect Match”
+- 84–91: “Great Match”
+- 72–83: “Good Match”
+- 55–71: “Decent / Adventurous”
+- 35–54: “Risky”
+- 1–34: “Avoid”
+
+Return tier + short descriptor in API.
+
+Also add a “Confidence” indicator based on how far #1 is above #2:
+- gap = matchScore(rank1) - matchScore(rank2)
+- If gap >= 8: High confidence
+- If 4–7: Medium
+- If <=3: Low
+
+--------------------------------------------
+5) UI CHANGES (CLEAR CUT DISPLAY)
+--------------------------------------------
+- Replace the single percent with:
+  - Big tier label (“Perfect Match”)
+  - Smaller percent beneath (e.g., 94%)
+  - A short “confidence” tag (High/Medium/Low)
+- Add a horizontal “meter” bar that corresponds to tier:
+  - The bar length reflects matchScore
+  - The color uses theme tokens (olive for strong, blush/terracotta for risky)
+  - Do NOT use raw hex; use Tailwind + CSS vars.
+
+Show “Why it works” as 2 bullets and “Watch out” as 1 bullet.
+
+--------------------------------------------
+6) TESTS
+--------------------------------------------
+Add tests to ensure:
+- matchScore is always 1–99
+- rank order by matchScore matches rank order by rawScore (monotonic after calibration)
+- hard mismatch rules reduce matchScore meaningfully
+- scores are more spread than before (std dev of matchScore increases per dish)
+
+--------------------------------------------
+7) DELIVERABLES
+--------------------------------------------
+- Implement calibration function in a dedicated util file (e.g., scoring/calibrateMatch.ts).
+- Update the API response and UI rendering to use matchScore + tiers.
+- Keep rawScore available for debugging (behind a dev toggle if needed).
+- List modified files and confirm app runs.

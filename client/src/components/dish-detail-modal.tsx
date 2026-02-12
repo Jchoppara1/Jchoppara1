@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Collapsible, CollapsibleTrigger, CollapsibleContent } from "@/components/ui/collapsible";
 import { Wine, Check, ChevronDown, ChevronRight, AlertTriangle } from "lucide-react";
+import { tierColor, tierBarColor } from "@shared/calibrateMatch";
 import { apiRequest } from "@/lib/queryClient";
 import { useIsMobile } from "@/hooks/use-mobile";
 import type { Food } from "@shared/foodSchema";
@@ -21,8 +22,12 @@ interface PairingResult {
     priceCategory: string;
   };
   score: number;
+  matchScore: number;
+  confidenceTier: string;
+  confidenceLevel?: string;
   explanation: string;
   whyItWorks: string[];
+  reasonHighlights?: { positive: string[]; negative?: string };
   avoidNote?: string;
   breakdown: {
     intensityMatch: number;
@@ -160,9 +165,10 @@ function PairingCard({
   onSelectWine?: (wineId: string) => void;
 }) {
   const [breakdownOpen, setBreakdownOpen] = useState(false);
-  const { wine, score, whyItWorks, avoidNote, breakdown } = pairing;
+  const { wine, score, matchScore, confidenceTier, whyItWorks, avoidNote, breakdown } = pairing;
   const vintage = extractVintage(wine.name);
-  const scoreColor = score >= 0.7 ? "text-olive" : score >= 0.5 ? "text-gold" : "text-muted-foreground";
+  const tc = tierColor(confidenceTier as any);
+  const bc = tierBarColor(confidenceTier as any);
 
   return (
     <div
@@ -191,9 +197,13 @@ function PairingCard({
             </span>
           </div>
         </div>
-        <span className={`text-lg font-bold tabular-nums ${scoreColor} shrink-0`}>
-          {Math.round(score * 100)}%
-        </span>
+        <div className="flex flex-col items-end shrink-0">
+          <span className={`text-[11px] font-semibold uppercase tracking-wider ${tc}`}>{confidenceTier}</span>
+          <span className={`text-lg font-bold tabular-nums ${tc}`}>{matchScore}%</span>
+        </div>
+      </div>
+      <div className="h-1.5 bg-muted rounded-full overflow-hidden">
+        <div className={`h-full rounded-full ${bc}`} style={{ width: `${matchScore}%` }} />
       </div>
 
       {whyItWorks.length > 0 && (

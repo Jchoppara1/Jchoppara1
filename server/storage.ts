@@ -2,7 +2,7 @@ import { type Wine, type InsertWine, type WineFilters, type User, type InsertUse
 import { type Food, type InsertFood, type FoodFilters, type FoodCategory } from "@shared/foodSchema";
 import { applyComputedFields } from "@shared/wineRules";
 import { inferWineProfile, buildWineDescription, getPriceTierFromPercentile, type WineProfile, type WineDescription } from "@shared/wineProfile";
-import { rankWinesForFood, rankFoodsForWine, inferDishProfile, type PairingResult, type DishProfile } from "@shared/pairingEngine";
+import { rankWinesForFood, rankFoodsForWine, inferDishProfile, type PairingResult, type FoodPairingResult, type DishProfile } from "@shared/pairingEngine";
 import { randomUUID } from "crypto";
 import * as fs from "fs";
 import * as path from "path";
@@ -27,7 +27,7 @@ export interface IStorage {
   getWineProfile(wineId: string, listType?: "bottle" | "glass"): WineProfile | undefined;
   getWineDescription(wineId: string, listType?: "bottle" | "glass"): WineDescription | undefined;
   getPairingsForFood(foodId: string, listType: "bottle" | "glass", mode: "classic" | "adventurous"): PairingResult[];
-  getPairingsForWine(wineId: string, listType: "bottle" | "glass", mode: "classic" | "adventurous"): { food: Food; score: number; explanation: string; whyItWorks: string[] }[];
+  getPairingsForWine(wineId: string, listType: "bottle" | "glass", mode: "classic" | "adventurous"): FoodPairingResult[];
   getDishProfile(foodId: string): DishProfile | undefined;
   getAllBottlePrices(): number[];
   getAllGlassPrices(): number[];
@@ -443,7 +443,7 @@ export class MemStorage implements IStorage {
     return rankWinesForFood(food, allWines, mode, 4);
   }
 
-  getPairingsForWine(wineId: string, listType: "bottle" | "glass" = "bottle", mode: "classic" | "adventurous" = "classic"): { food: Food; score: number; explanation: string; whyItWorks: string[] }[] {
+  getPairingsForWine(wineId: string, listType: "bottle" | "glass" = "bottle", mode: "classic" | "adventurous" = "classic"): FoodPairingResult[] {
     const wine = listType === "glass"
       ? this.winesByGlass.get(wineId)
       : this.wines.get(wineId);

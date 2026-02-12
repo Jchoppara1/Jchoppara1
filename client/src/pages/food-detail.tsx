@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ArrowLeft, Wine, Sparkles, BookOpen, Check } from "lucide-react";
+import { tierColor, tierBarColor } from "@shared/calibrateMatch";
 import type { Food } from "@shared/foodSchema";
 import type { Wine as WineType } from "@shared/schema";
 import { apiRequest } from "@/lib/queryClient";
@@ -13,6 +14,9 @@ import { apiRequest } from "@/lib/queryClient";
 interface PairingResult {
   wine: WineType;
   score: number;
+  matchScore: number;
+  confidenceTier: string;
+  confidenceLevel?: string;
   explanation: string;
   whyItWorks: string[];
   avoidNote?: string;
@@ -57,8 +61,9 @@ function ScoreBar({ value, label }: { value: number; label: string }) {
 
 function PairingCard({ pairing, listLabel }: { pairing: PairingResult; listLabel: string }) {
   const [showDetails, setShowDetails] = useState(false);
-  const score = Math.round(pairing.score * 100);
-  const scoreColor = score >= 70 ? "text-olive" : score >= 50 ? "text-gold" : "text-muted-foreground";
+  const { matchScore, confidenceTier } = pairing;
+  const tc = tierColor(confidenceTier as any);
+  const bc = tierBarColor(confidenceTier as any);
 
   return (
     <Card
@@ -84,14 +89,19 @@ function PairingCard({ pairing, listLabel }: { pairing: PairingResult; listLabel
             </div>
             <p className="text-sm text-muted-foreground">{pairing.wine.varietal}</p>
           </div>
-          <div className="flex items-center gap-3 shrink-0">
-            <span className={`text-lg font-bold tabular-nums ${scoreColor}`} data-testid={`text-pairing-score-${pairing.wine.id}`}>
-              {score}%
+          <div className="flex flex-col items-end shrink-0">
+            <span className={`text-[11px] font-semibold uppercase tracking-wider ${tc}`} data-testid={`text-pairing-tier-${pairing.wine.id}`}>{confidenceTier}</span>
+            <span className={`text-lg font-bold tabular-nums ${tc}`} data-testid={`text-pairing-score-${pairing.wine.id}`}>
+              {matchScore}%
             </span>
-            <span className="text-lg font-semibold" data-testid={`text-pairing-price-${pairing.wine.id}`}>
+            <span className="text-sm text-muted-foreground" data-testid={`text-pairing-price-${pairing.wine.id}`}>
               ${(pairing.wine.priceCents / 100).toFixed(0)}
             </span>
           </div>
+        </div>
+
+        <div className="h-1.5 bg-muted rounded-full overflow-hidden">
+          <div className={`h-full rounded-full ${bc}`} style={{ width: `${matchScore}%` }} />
         </div>
 
         <p className="text-sm text-muted-foreground" data-testid={`text-pairing-explanation-${pairing.wine.id}`}>

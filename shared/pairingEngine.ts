@@ -2,6 +2,7 @@ import type { Wine } from "./schema";
 import type { Food } from "./foodSchema";
 import type { WineProfile } from "./wineProfile";
 import { inferWineProfile } from "./wineProfile";
+import { calibrateScores, type ConfidenceTier, type ConfidenceLevel } from "./calibrateMatch";
 
 export interface DishProfile {
   protein: "beef" | "lamb" | "pork" | "chicken" | "seafood" | "shellfish" | "fish" | "vegetarian" | "vegan" | "none";
@@ -28,9 +29,13 @@ export interface ScoreBreakdown {
 export interface PairingResult {
   wine: Wine;
   score: number;
+  matchScore: number;
+  confidenceTier: ConfidenceTier;
+  confidenceLevel?: ConfidenceLevel;
   breakdown: ScoreBreakdown;
   explanation: string;
   whyItWorks: string[];
+  reasonHighlights?: { positive: string[]; negative?: string };
   avoidNote?: string;
 }
 
@@ -340,7 +345,7 @@ export function rankWinesForFood(
 ): PairingResult[] {
   const dishProfile = inferDishProfile(food);
 
-  const results: PairingResult[] = wines.map(wine => {
+  const rawResults = wines.map(wine => {
     const wineProfile = inferWineProfile(wine);
     const breakdown = scorePairing(wineProfile, dishProfile, wine, mode);
     const { explanation, whyItWorks, avoidNote } = generateExplanation(breakdown, wineProfile, dishProfile, wine);
@@ -354,6 +359,21 @@ export function rankWinesForFood(
       avoidNote,
     };
   });
+
+  const rawScores = rawResults.map(r => r.score);
+  const avoidFlags = rawResults.map(r => !!r.avoidNote);
+  const calibrated = calibrateScores(rawScores, avoidFlags);
+
+  const results: PairingResult[] = rawResults.map((r, i) => ({
+    ...r,
+    matchScore: calibrated[i].matchScore,
+    confidenceTier: calibrated[i].confidenceTier,
+    confidenceLevel: calibrated[i].confidenceLevel,
+    reasonHighlights: {
+      positive: r.whyItWorks.slice(0, 2),
+      negative: r.avoidNote,
+    },
+  }));
 
   results.sort((a, b) => b.score - a.score);
 
@@ -375,21 +395,41 @@ export function rankWinesForFood(
   return diverse;
 }
 
+export interface FoodPairingResult {
+  food: Food;
+  score: number;
+  matchScore: number;
+  confidenceTier: ConfidenceTier;
+  confidenceLevel?: ConfidenceLevel;
+  explanation: string;
+  whyItWorks: string[];
+}
+
 export function rankFoodsForWine(
   wine: Wine,
   foods: Food[],
   mode: "classic" | "adventurous" = "classic",
   topN: number = 4
-): { food: Food; score: number; explanation: string; whyItWorks: string[] }[] {
+): FoodPairingResult[] {
   const wineProfile = inferWineProfile(wine);
 
-  const results = foods.map(food => {
+  const rawResults = foods.map(food => {
     const dishProfile = inferDishProfile(food);
     const breakdown = scorePairing(wineProfile, dishProfile, wine, mode);
     const { explanation, whyItWorks } = generateExplanation(breakdown, wineProfile, dishProfile, wine);
 
     return { food, score: breakdown.total, explanation, whyItWorks };
   });
+
+  const rawScores = rawResults.map(r => r.score);
+  const calibrated = calibrateScores(rawScores);
+
+  const results: FoodPairingResult[] = rawResults.map((r, i) => ({
+    ...r,
+    matchScore: calibrated[i].matchScore,
+    confidenceTier: calibrated[i].confidenceTier,
+    confidenceLevel: calibrated[i].confidenceLevel,
+  }));
 
   results.sort((a, b) => b.score - a.score);
   return results.slice(0, topN);

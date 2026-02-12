@@ -11,6 +11,7 @@ import { Search, ChevronDown, ChevronRight, Flame, Droplets, Check, Wine, Utensi
 import { apiRequest } from "@/lib/queryClient";
 import { useIsMobile } from "@/hooks/use-mobile";
 import type { Food, FoodCategory } from "@shared/foodSchema";
+import { tierColor, tierBarColor } from "@shared/calibrateMatch";
 
 interface PairingResult {
   wine: {
@@ -23,8 +24,12 @@ interface PairingResult {
     description?: string;
   };
   score: number;
+  matchScore: number;
+  confidenceTier: string;
+  confidenceLevel?: string;
   explanation: string;
   whyItWorks: string[];
+  reasonHighlights?: { positive: string[]; negative?: string };
   breakdown: {
     intensityMatch: number;
     acidFat: number;
@@ -188,7 +193,7 @@ function PairingWineCard({
   const [whyOpen, setWhyOpen] = useState(false);
   const [tastingOpen, setTastingOpen] = useState(false);
 
-  const { wine, score, whyItWorks } = pairing;
+  const { wine, score, matchScore, confidenceTier, whyItWorks } = pairing;
 
   const { data: profileData } = useQuery<WineProfileData>({
     queryKey: ["/api/wines", wine.id, "profile", "bottle"],
@@ -238,9 +243,10 @@ function PairingWineCard({
               )}
             </div>
           </div>
-          <div className="flex items-center gap-1.5 shrink-0">
-            <span className="text-lg font-bold tabular-nums text-primary" data-testid={`text-pairing-score-${wine.id}`}>
-              {Math.round(score * 100)}%
+          <div className="flex flex-col items-end shrink-0">
+            <span className={`text-[11px] font-semibold uppercase tracking-wider ${tierColor(confidenceTier as any)}`} data-testid={`text-pairing-tier-${wine.id}`}>{confidenceTier}</span>
+            <span className={`text-lg font-bold tabular-nums ${tierColor(confidenceTier as any)}`} data-testid={`text-pairing-score-${wine.id}`}>
+              {matchScore}%
             </span>
           </div>
         </div>

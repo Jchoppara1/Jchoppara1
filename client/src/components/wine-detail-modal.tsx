@@ -4,7 +4,8 @@ import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from "@/components/u
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Collapsible, CollapsibleTrigger, CollapsibleContent } from "@/components/ui/collapsible";
-import { X, Thermometer, Wine, UtensilsCrossed, ChevronDown, ChevronRight, ArrowLeft, AlertTriangle } from "lucide-react";
+import { Thermometer, Wine, UtensilsCrossed, ArrowLeft } from "lucide-react";
+import { tierColor, tierBarColor } from "@shared/calibrateMatch";
 import { formatPrice } from "@shared/wineRules";
 import { apiRequest } from "@/lib/queryClient";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -44,6 +45,9 @@ interface EnrichedWine {
 interface FoodPairingResult {
   food: { id: string; name: string; category: string; priceCents: number };
   score: number;
+  matchScore: number;
+  confidenceTier: string;
+  confidenceLevel?: string;
   explanation: string;
   whyItWorks: string[];
 }
@@ -210,7 +214,10 @@ function WineDetailContent({
                 Pairs Best With
               </h4>
               <div className="space-y-3">
-                {topPairings.map(({ food, score, explanation }) => (
+                {topPairings.map(({ food, score, matchScore, confidenceTier, explanation }) => {
+                  const tc = tierColor(confidenceTier as any);
+                  const bc = tierBarColor(confidenceTier as any);
+                  return (
                   <div
                     key={food.id}
                     className={`bg-card rounded-2xl border border-border p-5 space-y-2 transition-transform ${onSelectFood ? "cursor-pointer hover-elevate" : ""}`}
@@ -228,11 +235,18 @@ function WineDetailContent({
                           {food.category}
                         </Badge>
                       </div>
-                      <span className="text-sm font-bold tabular-nums text-olive shrink-0">{Math.round(score * 100)}%</span>
+                      <div className="flex flex-col items-end shrink-0">
+                        <span className={`text-[11px] font-semibold uppercase tracking-wider ${tc}`} data-testid={`text-pairing-tier-${food.id}`}>{confidenceTier}</span>
+                        <span className={`text-sm font-bold tabular-nums ${tc}`}>{matchScore}%</span>
+                      </div>
+                    </div>
+                    <div className="h-1.5 bg-muted rounded-full overflow-hidden">
+                      <div className={`h-full rounded-full ${bc}`} style={{ width: `${matchScore}%` }} />
                     </div>
                     <p className="text-xs text-muted-foreground line-clamp-2">{explanation}</p>
                   </div>
-                ))}
+                  );
+                })}
               </div>
             </div>
           )}

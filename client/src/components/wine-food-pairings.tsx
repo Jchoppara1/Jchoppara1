@@ -3,11 +3,14 @@ import { Badge } from "@/components/ui/badge";
 import { Link } from "wouter";
 import type { Wine } from "@shared/schema";
 import { UtensilsCrossed } from "lucide-react";
+import { tierColor } from "@shared/calibrateMatch";
 import { apiRequest } from "@/lib/queryClient";
 
 interface FoodPairingResult {
   food: { id: string; name: string; category: string; priceCents: number };
   score: number;
+  matchScore: number;
+  confidenceTier: string;
   explanation: string;
   whyItWorks: string[];
 }
@@ -40,7 +43,7 @@ export function WineFoodPairings({ wine, maxItems = 3, isGlassWine = false }: Wi
         <span className="text-xs text-muted-foreground font-medium">Pairs With</span>
       </div>
       <div className="flex flex-wrap gap-1">
-        {displayedPairings.map(({ food, score }) => (
+        {displayedPairings.map(({ food, matchScore, confidenceTier }) => (
           <Link key={food.id} href={`/food/${food.id}`}>
             <Badge 
               variant="outline" 
@@ -48,7 +51,7 @@ export function WineFoodPairings({ wine, maxItems = 3, isGlassWine = false }: Wi
               data-testid={`badge-food-pair-${wine.id}-${food.id}`}
             >
               {food.name.replace(" (GF)", "")}
-              <span className="ml-1 opacity-60">{Math.round(score * 100)}%</span>
+              <span className={`ml-1 ${tierColor(confidenceTier as any)}`}>{matchScore}%</span>
             </Badge>
           </Link>
         ))}

@@ -176,7 +176,15 @@ export async function registerRoutes(
     const listType = (req.query.list as string) === "glass" ? "glass" : "bottle";
     const mode = (req.query.mode as string) === "adventurous" ? "adventurous" : "classic";
     const pairings = storage.getPairingsForWine(req.params.id, listType, mode);
-    res.json(pairings);
+    res.json(pairings.map(p => ({
+      food: p.food,
+      score: p.score,
+      matchScore: p.matchScore,
+      confidenceTier: p.confidenceTier,
+      confidenceLevel: p.confidenceLevel,
+      explanation: p.explanation,
+      whyItWorks: p.whyItWorks,
+    })));
   });
 
   app.get("/api/foods/:id/pairings", async (req, res) => {
@@ -186,8 +194,12 @@ export async function registerRoutes(
     res.json(pairings.map(p => ({
       wine: p.wine,
       score: p.score,
+      matchScore: p.matchScore,
+      confidenceTier: p.confidenceTier,
+      confidenceLevel: p.confidenceLevel,
       explanation: p.explanation,
       whyItWorks: p.whyItWorks,
+      reasonHighlights: p.reasonHighlights,
       avoidNote: p.avoidNote,
       breakdown: p.breakdown,
     })));
