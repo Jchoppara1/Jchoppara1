@@ -7,6 +7,7 @@ A restaurant wine catalog management application that allows staff to organize, 
 - Automatic price categorization ($, $$, $$$, $$$$)
 - Complete food menu system with 37 Middle Eastern dishes across 4 categories
 - Bidirectional wine/food pairing recommendations
+- Admin inventory management system with secure login, stock control, and label management
 
 Built as a full-stack TypeScript application with a React frontend and Express backend.
 
@@ -79,6 +80,17 @@ shared/           # Shared code between client and server
 - `/` - Wine List with food pairings on cards
 - `/food` - Food Menu with category filtering
 - `/food/:id` - Food Detail with wine recommendations
+- `/admin` - Admin inventory management (login required)
+
+### Admin System
+- **Auth**: Session-based with bcrypt password hashing, rate limiting (5 attempts / 15min lockout)
+- **Credentials**: ADMIN_EMAIL and ADMIN_PASSWORD environment secrets
+- **Session**: express-session with SESSION_SECRET, httpOnly cookies
+- **Features**: Stock toggle (out-of-stock items hidden from public), label management, CRUD for wines and food items
+- **Wine Labels**: Featured, New, ByTheGlass, Reserve
+- **Food Labels**: Seasonal, New, ChefSpecial
+- **Admin Routes**: /api/admin/login, /api/admin/logout, /api/admin/me, /api/admin/wines, /api/admin/menu
+- **Files**: server/adminRoutes.ts (auth + routes), client/src/pages/admin.tsx (UI)
 
 ### Data Files
 - `attached_assets/wines.csv` - 66 wines loaded at startup
