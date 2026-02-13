@@ -1,4 +1,4 @@
-import { pgTable, text, varchar, integer } from "drizzle-orm/pg-core";
+import { pgTable, text, varchar, integer, boolean, timestamp } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
@@ -24,6 +24,9 @@ export const foodPairingOptions = [
 ] as const;
 export type FoodPairing = typeof foodPairingOptions[number];
 
+export const wineLabels = ["Featured", "New", "ByTheGlass", "Reserve"] as const;
+export type WineLabel = typeof wineLabels[number];
+
 export const wines = pgTable("wines", {
   id: varchar("id", { length: 36 }).primaryKey(),
   name: text("name").notNull(),
@@ -33,10 +36,13 @@ export const wines = pgTable("wines", {
   description: text("description"),
   priceCategory: varchar("price_category", { length: 10 }).notNull(),
   foodPairings: text("food_pairings").array().notNull(),
+  outOfStock: boolean("out_of_stock").default(false).notNull(),
+  labels: text("labels").array().default([]).notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 
 export const insertWineSchema = createInsertSchema(wines)
-  .omit({ id: true, priceCategory: true, foodPairings: true })
+  .omit({ id: true, priceCategory: true, foodPairings: true, outOfStock: true, labels: true, updatedAt: true })
   .extend({
     name: z.string().min(1, "Name is required").max(200),
     wineType: z.enum(wineTypes),
@@ -47,6 +53,30 @@ export const insertWineSchema = createInsertSchema(wines)
 
 export type InsertWine = z.infer<typeof insertWineSchema>;
 export type Wine = typeof wines.$inferSelect;
+
+export const adminWineUpdateSchema = z.object({
+  name: z.string().min(1).max(200).optional(),
+  wineType: z.enum(wineTypes).optional(),
+  varietal: z.string().min(1).max(100).optional(),
+  priceCents: z.number().int().min(0).optional(),
+  description: z.string().max(1000).optional().nullable(),
+  producer: z.string().max(200).optional().nullable(),
+  vintage: z.string().max(10).optional().nullable(),
+  region: z.string().max(200).optional().nullable(),
+  notes: z.string().max(1000).optional().nullable(),
+}).strict();
+
+export const adminWineCreateSchema = z.object({
+  name: z.string().min(1).max(200),
+  wineType: z.enum(wineTypes),
+  varietal: z.string().min(1).max(100),
+  priceCents: z.number().int().min(0),
+  description: z.string().max(1000).optional().nullable(),
+  producer: z.string().max(200).optional().nullable(),
+  vintage: z.string().max(10).optional().nullable(),
+  region: z.string().max(200).optional().nullable(),
+  notes: z.string().max(1000).optional().nullable(),
+}).strict();
 
 export const wineFiltersSchema = z.object({
   search: z.string().optional(),

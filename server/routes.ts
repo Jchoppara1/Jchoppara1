@@ -4,6 +4,7 @@ import { storage } from "./storage";
 import { insertWineSchema, wineFiltersSchema } from "@shared/schema";
 import { foodCategories } from "@shared/foodSchema";
 import { z } from "zod";
+import { registerAdminRoutes, bootstrapAdmin } from "./adminRoutes";
 
 const foodFiltersSchema = z.object({
   search: z.string().optional(),
@@ -14,6 +15,8 @@ export async function registerRoutes(
   httpServer: Server,
   app: Express
 ): Promise<Server> {
+  await bootstrapAdmin();
+  registerAdminRoutes(app);
   
   app.get("/api/wines", async (req, res) => {
     try {

@@ -31,6 +31,19 @@ export interface IStorage {
   getDishProfile(foodId: string): DishProfile | undefined;
   getAllBottlePrices(): number[];
   getAllGlassPrices(): number[];
+
+  listAllWinesAdmin(): Promise<Wine[]>;
+  listAllWinesByGlassAdmin(): Promise<Wine[]>;
+  adminUpdateWine(id: string, updates: Record<string, any>, listType: "bottle" | "glass"): Promise<Wine | undefined>;
+  adminCreateWine(data: Record<string, any>, listType: "bottle" | "glass"): Promise<Wine>;
+  adminToggleWineStock(id: string, outOfStock: boolean, listType: "bottle" | "glass"): Promise<Wine | undefined>;
+  adminSetWineLabels(id: string, labels: string[], listType: "bottle" | "glass"): Promise<Wine | undefined>;
+
+  listAllFoodsAdmin(): Promise<Food[]>;
+  adminUpdateFood(id: string, updates: Record<string, any>): Promise<Food | undefined>;
+  adminCreateFood(data: Record<string, any>): Promise<Food>;
+  adminToggleFoodStock(id: string, outOfStock: boolean): Promise<Food | undefined>;
+  adminSetFoodLabels(id: string, labels: string[]): Promise<Food | undefined>;
 }
 
 function parseCSV(content: string): Record<string, string>[] {
@@ -77,8 +90,8 @@ function mapCategoryToWineType(category: string): "Red" | "White" | "Rosé" | "S
   if (normalized === "White") return "White";
   if (normalized === "Rosé") return "Rosé";
   if (normalized === "Sparkling") return "Sparkling";
-  if (normalized === "Amber") return "White"; // Amber/orange wines are made from white grapes
-  return "Red"; // Default fallback
+  if (normalized === "Amber") return "White";
+  return "Red";
 }
 
 function loadWinesFromCSV(): Omit<InsertWine, "id">[] {
@@ -109,7 +122,7 @@ function mapCategoryToFoodCategory(category: string): FoodCategory {
   if (normalized === "Spreads") return "Spreads";
   if (normalized === "Greens & Grains") return "Greens & Grains";
   if (normalized === "Meats & Seafood") return "Meats & Seafood";
-  return "Meats & Seafood"; // Default fallback
+  return "Meats & Seafood";
 }
 
 function loadWinesByGlassFromCSV(): Omit<InsertWine, "id">[] {
@@ -150,6 +163,22 @@ function loadFoodsFromCSV(): Omit<InsertFood, "id">[] {
     category: mapCategoryToFoodCategory(record.category),
     priceCents: Math.round(parseFloat(record.price || '0') * 100),
   }));
+}
+
+function makeWineObj(id: string, wine: Omit<InsertWine, "id">, computed: any): Wine {
+  return {
+    id,
+    name: wine.name,
+    wineType: wine.wineType,
+    varietal: wine.varietal,
+    priceCents: wine.priceCents,
+    description: wine.description || null,
+    priceCategory: computed.priceCategory,
+    foodPairings: computed.foodPairings,
+    outOfStock: false,
+    labels: [],
+    updatedAt: new Date(),
+  };
 }
 
 export class MemStorage implements IStorage {
@@ -208,16 +237,7 @@ export class MemStorage implements IStorage {
         priceCents: wine.priceCents,
       });
       
-      const wineObj: Wine = {
-        id,
-        name: wine.name,
-        wineType: wine.wineType,
-        varietal: wine.varietal,
-        priceCents: wine.priceCents,
-        description: wine.description || null,
-        priceCategory: computed.priceCategory,
-        foodPairings: computed.foodPairings,
-      };
+      const wineObj = makeWineObj(id, wine, computed);
       this.wines.set(id, wineObj);
       this.computeProfileAndDescription(wineObj);
     }
@@ -241,7 +261,7 @@ export class MemStorage implements IStorage {
   }
 
   async listWines(filters?: WineFilters): Promise<Wine[]> {
-    let wines = Array.from(this.wines.values());
+    let wines = Array.from(this.wines.values()).filter(w => !w.outOfStock);
     
     if (filters?.search) {
       const search = filters.search.toLowerCase();
@@ -291,9 +311,13 @@ export class MemStorage implements IStorage {
       description: insertWine.description || null,
       priceCategory: computed.priceCategory,
       foodPairings: computed.foodPairings,
+      outOfStock: false,
+      labels: [],
+      updatedAt: new Date(),
     };
     
     this.wines.set(id, wine);
+    this.computeProfileAndDescription(wine);
     return wine;
   }
 
@@ -320,6 +344,7 @@ export class MemStorage implements IStorage {
     };
     
     this.wines.set(id, wine);
+    this.computeProfileAndDescription(wine);
     return wine;
   }
 
@@ -339,23 +364,14 @@ export class MemStorage implements IStorage {
         priceCents: wine.priceCents,
       });
       
-      const wineObj: Wine = {
-        id,
-        name: wine.name,
-        wineType: wine.wineType,
-        varietal: wine.varietal,
-        priceCents: wine.priceCents,
-        description: wine.description || null,
-        priceCategory: computed.priceCategory,
-        foodPairings: computed.foodPairings,
-      };
+      const wineObj = makeWineObj(id, wine, computed);
       this.winesByGlass.set(id, wineObj);
       this.computeProfileAndDescription(wineObj);
     }
   }
 
   async listWinesByGlass(filters?: WineFilters): Promise<Wine[]> {
-    let wines = Array.from(this.winesByGlass.values());
+    let wines = Array.from(this.winesByGlass.values()).filter(w => !w.outOfStock);
     
     if (filters?.search) {
       const search = filters.search.toLowerCase();
@@ -399,12 +415,15 @@ export class MemStorage implements IStorage {
         name: food.name,
         category: food.category,
         priceCents: food.priceCents,
+        outOfStock: false,
+        labels: [],
+        updatedAt: new Date().toISOString(),
       });
     }
   }
 
   async listFoods(filters?: FoodFilters): Promise<Food[]> {
-    let foods = Array.from(this.foods.values());
+    let foods = Array.from(this.foods.values()).filter(f => !f.outOfStock);
     
     if (filters?.search) {
       const search = filters.search.toLowerCase();
@@ -437,8 +456,8 @@ export class MemStorage implements IStorage {
     if (!food) return [];
 
     const allWines = listType === "glass"
-      ? Array.from(this.winesByGlass.values())
-      : Array.from(this.wines.values());
+      ? Array.from(this.winesByGlass.values()).filter(w => !w.outOfStock)
+      : Array.from(this.wines.values()).filter(w => !w.outOfStock);
 
     return rankWinesForFood(food, allWines, mode, 4);
   }
@@ -449,7 +468,7 @@ export class MemStorage implements IStorage {
       : this.wines.get(wineId);
     if (!wine) return [];
 
-    const allFoods = Array.from(this.foods.values());
+    const allFoods = Array.from(this.foods.values()).filter(f => !f.outOfStock);
     return rankFoodsForWine(wine, allFoods, mode, 4);
   }
 
@@ -465,6 +484,137 @@ export class MemStorage implements IStorage {
 
   getAllGlassPrices(): number[] {
     return Array.from(this.winesByGlass.values()).map(w => w.priceCents);
+  }
+
+  async listAllWinesAdmin(): Promise<Wine[]> {
+    return Array.from(this.wines.values()).sort((a, b) => a.name.localeCompare(b.name));
+  }
+
+  async listAllWinesByGlassAdmin(): Promise<Wine[]> {
+    return Array.from(this.winesByGlass.values()).sort((a, b) => a.name.localeCompare(b.name));
+  }
+
+  async adminUpdateWine(id: string, updates: Record<string, any>, listType: "bottle" | "glass"): Promise<Wine | undefined> {
+    const map = listType === "glass" ? this.winesByGlass : this.wines;
+    const existing = map.get(id);
+    if (!existing) return undefined;
+
+    const merged = { ...existing };
+    if (updates.name !== undefined) merged.name = updates.name;
+    if (updates.wineType !== undefined) merged.wineType = updates.wineType;
+    if (updates.varietal !== undefined) merged.varietal = updates.varietal;
+    if (updates.priceCents !== undefined) merged.priceCents = updates.priceCents;
+    if (updates.description !== undefined) merged.description = updates.description;
+    merged.updatedAt = new Date();
+
+    const computed = applyComputedFields({
+      wineType: merged.wineType as any,
+      varietal: merged.varietal,
+      priceCents: merged.priceCents,
+    });
+    merged.priceCategory = computed.priceCategory;
+    merged.foodPairings = computed.foodPairings;
+
+    map.set(id, merged);
+    this.computeProfileAndDescription(merged);
+    return merged;
+  }
+
+  async adminCreateWine(data: Record<string, any>, listType: "bottle" | "glass"): Promise<Wine> {
+    const id = randomUUID();
+    const computed = applyComputedFields({
+      wineType: data.wineType as any,
+      varietal: data.varietal,
+      priceCents: data.priceCents,
+    });
+
+    const wine: Wine = {
+      id,
+      name: data.name,
+      wineType: data.wineType,
+      varietal: data.varietal,
+      priceCents: data.priceCents,
+      description: data.description || null,
+      priceCategory: computed.priceCategory,
+      foodPairings: computed.foodPairings,
+      outOfStock: false,
+      labels: [],
+      updatedAt: new Date(),
+    };
+
+    const map = listType === "glass" ? this.winesByGlass : this.wines;
+    map.set(id, wine);
+    this.computeProfileAndDescription(wine);
+    return wine;
+  }
+
+  async adminToggleWineStock(id: string, outOfStock: boolean, listType: "bottle" | "glass"): Promise<Wine | undefined> {
+    const map = listType === "glass" ? this.winesByGlass : this.wines;
+    const existing = map.get(id);
+    if (!existing) return undefined;
+    const updated = { ...existing, outOfStock, updatedAt: new Date() };
+    map.set(id, updated);
+    return updated;
+  }
+
+  async adminSetWineLabels(id: string, labels: string[], listType: "bottle" | "glass"): Promise<Wine | undefined> {
+    const map = listType === "glass" ? this.winesByGlass : this.wines;
+    const existing = map.get(id);
+    if (!existing) return undefined;
+    const updated = { ...existing, labels, updatedAt: new Date() };
+    map.set(id, updated);
+    return updated;
+  }
+
+  async listAllFoodsAdmin(): Promise<Food[]> {
+    return Array.from(this.foods.values()).sort((a, b) => a.name.localeCompare(b.name));
+  }
+
+  async adminUpdateFood(id: string, updates: Record<string, any>): Promise<Food | undefined> {
+    const existing = this.foods.get(id);
+    if (!existing) return undefined;
+
+    const merged = { ...existing };
+    if (updates.name !== undefined) merged.name = updates.name;
+    if (updates.category !== undefined) merged.category = updates.category;
+    if (updates.priceCents !== undefined) merged.priceCents = updates.priceCents;
+    if (updates.description !== undefined) merged.description = updates.description ?? undefined;
+    merged.updatedAt = new Date().toISOString();
+
+    this.foods.set(id, merged);
+    return merged;
+  }
+
+  async adminCreateFood(data: Record<string, any>): Promise<Food> {
+    const id = randomUUID();
+    const food: Food = {
+      id,
+      name: data.name,
+      category: data.category,
+      priceCents: data.priceCents,
+      description: data.description || undefined,
+      outOfStock: false,
+      labels: [],
+      updatedAt: new Date().toISOString(),
+    };
+    this.foods.set(id, food);
+    return food;
+  }
+
+  async adminToggleFoodStock(id: string, outOfStock: boolean): Promise<Food | undefined> {
+    const existing = this.foods.get(id);
+    if (!existing) return undefined;
+    const updated = { ...existing, outOfStock, updatedAt: new Date().toISOString() };
+    this.foods.set(id, updated);
+    return updated;
+  }
+
+  async adminSetFoodLabels(id: string, labels: string[]): Promise<Food | undefined> {
+    const existing = this.foods.get(id);
+    if (!existing) return undefined;
+    const updated = { ...existing, labels, updatedAt: new Date().toISOString() };
+    this.foods.set(id, updated);
+    return updated;
   }
 }
 
