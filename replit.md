@@ -81,6 +81,7 @@ shared/           # Shared code between client and server
 - `/food` - Food Menu with category filtering
 - `/food/:id` - Food Detail with wine recommendations
 - `/admin` - Admin inventory management (login required)
+- `/deck` - Investor screenshot deck (standalone presentation, no navbar)
 
 ### Admin System
 - **Auth**: Session-based with bcrypt password hashing, rate limiting (5 attempts / 15min lockout)

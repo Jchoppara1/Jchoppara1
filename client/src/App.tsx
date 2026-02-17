@@ -8,6 +8,7 @@ import Home from "@/pages/home";
 import FoodMenu from "@/pages/food-menu";
 import FoodDetail from "@/pages/food-detail";
 import AdminPage from "@/pages/admin";
+import DeckPage from "@/pages/deck";
 import NotFound from "@/pages/not-found";
 import { Grape, UtensilsCrossed } from "lucide-react";
 
@@ -55,16 +56,20 @@ function Router() {
       <Route path="/food" component={FoodMenu} />
       <Route path="/food/:id" component={FoodDetail} />
       <Route path="/admin" component={AdminPage} />
+      <Route path="/deck" component={DeckPage} />
       <Route component={NotFound} />
     </Switch>
   );
 }
 
 function App() {
+  const [location] = useLocation();
+  const hideNav = location === "/deck";
+
   return (
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
-        <NavBar />
+        {!hideNav && <NavBar />}
         <Toaster />
         <Router />
       </TooltipProvider>
