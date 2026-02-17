@@ -12,7 +12,6 @@ export const foodPairingOptions = [
   "Beef",
   "Lamb",
   "Poultry",
-  "Pork",
   "Seafood",
   "Fish",
   "Pasta",

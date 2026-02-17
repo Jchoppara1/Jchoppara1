@@ -5,7 +5,7 @@ import { inferWineProfile } from "./wineProfile";
 import { calibrateScores, type ConfidenceTier, type ConfidenceLevel } from "./calibrateMatch";
 
 export interface DishProfile {
-  protein: "beef" | "lamb" | "pork" | "chicken" | "seafood" | "shellfish" | "fish" | "vegetarian" | "vegan" | "none";
+  protein: "beef" | "lamb" | "chicken" | "seafood" | "shellfish" | "fish" | "vegetarian" | "vegan" | "none";
   cookingMethod: "grilled" | "fried" | "roasted" | "raw" | "braised" | "stewed" | "baked" | "other";
   dominantSauce: "cream" | "tomato" | "butter" | "citrus" | "soy" | "chili" | "herb" | "tahini" | "yogurt" | "none";
   spiceLevel: number;
@@ -42,10 +42,11 @@ export interface PairingResult {
 const proteinKeywords: Record<string, DishProfile["protein"]> = {
   "beef": "beef", "hanger steak": "beef", "koobideh": "beef", "barg": "beef",
   "lamb": "lamb",
-  "pork": "pork",
+  // REMOVED: pork items for Middle Eastern restaurant
   "chicken": "chicken", "joojeh": "chicken", "kofta": "chicken",
-  "shrimp": "shellfish", "omani shrimp": "shellfish",
-  "seabass": "fish", "branzino": "fish", "salmon": "fish", "fish": "fish",
+  "shrimp": "shellfish", "omani shrimp": "shellfish", "prawn": "shellfish", "crab": "shellfish", "lobster": "shellfish", "mussel": "shellfish", "clam": "shellfish", "oyster": "shellfish",
+  // EXPANDED: Added more fish keywords including seabass variations
+  "seabass": "fish", "sea bass": "fish", "branzino": "fish", "salmon": "fish", "fish": "fish", "trout": "fish", "cod": "fish", "halibut": "fish", "snapper": "fish", "tuna": "fish", "mahi": "fish", "tilapia": "fish", "sole": "fish", "flounder": "fish",
   "falafel": "vegetarian", "cauliflower": "vegetarian", "beet": "vegetarian",
   "vegetarian": "vegetarian",
 };
@@ -79,7 +80,8 @@ export function inferDishProfile(food: Food): DishProfile {
       break;
     }
   }
-  if (protein === "none" && categoryLower.includes("meat")) protein = "beef";
+  // IMPROVED: Better category fallback logic
+  if (protein === "none" && (categoryLower.includes("meat") && !categoryLower.includes("seafood"))) protein = "beef";
   if (protein === "none" && categoryLower.includes("seafood")) protein = "fish";
 
   let cookingMethod: DishProfile["cookingMethod"] = "other";
@@ -102,7 +104,7 @@ export function inferDishProfile(food: Food): DishProfile {
   const spiceLevel = spicyDishes.some(s => nameLower.includes(s)) ? 0.8 : 0.2;
 
   let richness = 0.5;
-  if (["beef", "lamb", "pork"].includes(protein)) richness = 0.8;
+  if (["beef", "lamb"].includes(protein)) richness = 0.8;
   if (cookingMethod === "braised" || cookingMethod === "fried") richness += 0.1;
   if (protein === "fish" || protein === "seafood") richness = 0.3;
   if (protein === "vegetarian") richness = 0.3;
@@ -186,11 +188,10 @@ export function scorePairing(
   }
 
   // RULE: Tannin vs protein - higher tannin works with red meat and grilled proteins; penalize with delicate fish
+  // REMOVED: pork-specific logic since this is a Middle Eastern restaurant
   let tanninProtein = 0.5;
   if (["beef", "lamb"].includes(dishProfile.protein) && wineTannin > 0.5) {
     tanninProtein = 0.9;
-  } else if (dishProfile.protein === "pork" && wineTannin > 0.3 && wineTannin < 0.7) {
-    tanninProtein = 0.7;
   } else if (["fish", "seafood", "shellfish"].includes(dishProfile.protein) && wineTannin > 0.5) {
     tanninProtein = 0.1;
   } else if (dishProfile.protein === "chicken" && wineTannin < 0.5) {
@@ -379,7 +380,7 @@ export function rankWinesForFood(
 
   const seen = new Set<string>();
   const diverse: PairingResult[] = [];
-  
+
   for (const r of results) {
     if (diverse.length >= topN) break;
     const typeKey = r.wine.wineType;
