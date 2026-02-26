@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, memo, useCallback } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { Wine, WineFilters, wineTypes, priceCategories, foodPairingOptions } from "@shared/schema";
 import { wineTypeColors, wineTypeLabel, WINE_TYPES } from "@/lib/wineTypeColors";
@@ -102,7 +102,7 @@ function WineCard({
 
   return (
     <Card
-      className="overflow-visible hover-elevate group cursor-pointer"
+      className="overflow-visible ui-card-interactive group cursor-pointer"
       onClick={() => onSelect(wine)}
       onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); onSelect(wine); }}}
       role="button"
@@ -249,12 +249,14 @@ function FilterPanel({
 
   return (
     <div className="space-y-4">
-      {hasUnsavedChanges && (
-        <div className="flex items-center gap-1.5 text-xs text-amber-600 dark:text-amber-400" data-testid="text-unsaved-changes">
-          <div className="h-1.5 w-1.5 rounded-full bg-amber-500 animate-pulse" />
-          Unsaved changes
-        </div>
-      )}
+      <div
+        className={`flex items-center gap-1.5 text-xs text-amber-600 dark:text-amber-400 h-5 transition-opacity duration-200 ease-out ${hasUnsavedChanges ? "opacity-100" : "opacity-0 pointer-events-none"}`}
+        data-testid="text-unsaved-changes"
+        aria-hidden={!hasUnsavedChanges}
+      >
+        <div className="h-1.5 w-1.5 rounded-full bg-amber-500 animate-pulse shrink-0" />
+        Unsaved changes
+      </div>
 
       <div className="relative">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -853,7 +855,7 @@ export default function Home() {
             </div>
 
             {isLoading ? (
-              <div className="grid gap-4 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
+              <div className="grid gap-4 grid-cols-1 md:grid-cols-2 lg:grid-cols-3 ui-fade-in">
                 {Array.from({ length: 6 }).map((_, i) => (
                   <WineCardSkeleton key={i} />
                 ))}
@@ -861,7 +863,7 @@ export default function Home() {
             ) : filteredWines.length === 0 ? (
               <EmptyState hasFilters={!!hasActiveFilters} />
             ) : (
-              <div className="grid gap-4 grid-cols-1 md:grid-cols-2 lg:grid-cols-3" data-testid="wine-grid">
+              <div className="grid gap-4 grid-cols-1 md:grid-cols-2 lg:grid-cols-3 ui-fade-in" data-testid="wine-grid">
                 {filteredWines.map((wine) => (
                   <WineCard
                     key={wine.id}

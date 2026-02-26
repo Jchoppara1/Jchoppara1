@@ -140,10 +140,10 @@ function DishListItem({
 
   return (
     <div
-      className={`flex items-start gap-3 p-3 rounded-md cursor-pointer transition-colors duration-150 ${
+      className={`flex items-start gap-3 p-3 rounded-md cursor-pointer ui-transition ${
         isSelected
           ? "bg-accent"
-          : "hover-elevate"
+          : "hover:bg-muted/40"
       }`}
       onClick={onClick}
       onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); onClick(); }}}

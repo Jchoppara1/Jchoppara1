@@ -19,7 +19,7 @@ export function FoodCard({ food, onClick }: FoodCardProps) {
   
   return (
     <Card 
-      className="hover-elevate cursor-pointer h-full"
+      className="ui-card-interactive cursor-pointer h-full"
       onClick={() => onClick?.(food)}
       onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); onClick?.(food); }}}
       role="button"

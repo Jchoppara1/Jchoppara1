@@ -168,7 +168,7 @@ function PairingCard({
 
   return (
     <div
-      className={`bg-card rounded-2xl border border-border p-5 space-y-3 transition-transform ${onSelectWine ? "cursor-pointer hover-elevate" : ""}`}
+      className={`bg-card rounded-2xl border border-border p-5 space-y-3 ${onSelectWine ? "cursor-pointer ui-lift-hover" : ""}`}
       data-testid={`dish-detail-pairing-${wine.id}`}
     >
       <div
@@ -305,7 +305,7 @@ function DishDetailContent({
   const pairingLogic = generatePairingLogic(food, allPairings[0], dishProfile ?? null);
 
   return (
-    <div className="overflow-y-auto max-h-[calc(90vh-220px)] px-6 pb-6 space-y-6">
+    <div className="overflow-y-auto max-h-[calc(90vh-220px)] px-6 pb-6 space-y-6 ui-fade-in">
       <div className="grid grid-cols-2 sm:grid-cols-5 gap-2" data-testid="dish-insight-strip">
         {dishProfile && (
           <>

@@ -127,7 +127,7 @@ function WineDetailContent({
   }
 
   return (
-    <div className="overflow-y-auto max-h-[calc(90vh-220px)] px-6 pb-6 space-y-6">
+    <div className="overflow-y-auto max-h-[calc(90vh-220px)] px-6 pb-6 space-y-6 ui-fade-in">
       {profile && (
         <div className="grid grid-cols-3 sm:grid-cols-5 gap-2" data-testid="wine-insight-strip">
           <InsightChip label="Body" value={profile.body} />
@@ -216,7 +216,7 @@ function WineDetailContent({
                   return (
                   <div
                     key={food.id}
-                    className={`bg-card rounded-2xl border border-border p-5 space-y-2 transition-transform ${onSelectFood ? "cursor-pointer hover-elevate" : ""}`}
+                    className={`bg-card rounded-2xl border border-border p-5 space-y-2 ${onSelectFood ? "cursor-pointer ui-lift-hover" : ""}`}
                     onClick={() => onSelectFood?.(food.id)}
                     role={onSelectFood ? "button" : undefined}
                     tabIndex={onSelectFood ? 0 : undefined}

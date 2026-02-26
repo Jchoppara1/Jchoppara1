@@ -245,6 +245,77 @@
     inset: -1px;
   }
 
+  .ui-transition {
+    @apply transition-all duration-200 ease-out;
+  }
+
+  .ui-fade-in {
+    animation: uiFadeIn 200ms ease-out both;
+  }
+
+  .ui-scale-in {
+    animation: uiScaleIn 200ms ease-out both;
+  }
+
+  .ui-lift-hover {
+    @apply transition-all duration-200 ease-out;
+  }
+  .ui-lift-hover:hover {
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-md);
+  }
+  .ui-lift-hover:active {
+    transform: scale(0.995);
+  }
+
+  .ui-focus {
+    @apply focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:outline-none;
+  }
+
+  .ui-card-interactive {
+    @apply transition-all duration-200 ease-out;
+  }
+  .ui-card-interactive:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+  }
+  .ui-card-interactive:active {
+    transform: translateY(0) scale(0.995);
+  }
+  .ui-card-interactive:focus-visible {
+    @apply ring-2 ring-ring ring-offset-2 outline-none;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .ui-transition,
+    .ui-lift-hover,
+    .ui-card-interactive {
+      transition-duration: 0ms !important;
+    }
+    .ui-lift-hover:hover,
+    .ui-card-interactive:hover {
+      transform: none !important;
+    }
+    .ui-lift-hover:active,
+    .ui-card-interactive:active {
+      transform: none !important;
+    }
+    .ui-fade-in,
+    .ui-scale-in {
+      animation: none !important;
+    }
+  }
+
+  @keyframes uiFadeIn {
+    from { opacity: 0; transform: translateY(4px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  @keyframes uiScaleIn {
+    from { opacity: 0; transform: scale(0.98); }
+    to { opacity: 1; transform: scale(1); }
+  }
+
   .bg-delbar-pattern {
     background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M30 0c2 8 8 14 16 16-8 2-14 8-16 16-2-8-8-14-16-16 8-2 14-8 16-16z' fill='%23997a5c' fill-opacity='0.05'/%3E%3Cpath d='M0 30c2 8 8 14 16 16-8 2-14 8-16 16-2-8-8-14-16-16 8-2 14-8 16-16z' fill='%23997a5c' fill-opacity='0.03'/%3E%3Cpath d='M60 30c2 8 8 14 16 16-8 2-14 8-16 16-2-8-8-14-16-16 8-2 14-8 16-16z' fill='%23997a5c' fill-opacity='0.03'/%3E%3C/svg%3E");
     background-repeat: repeat;

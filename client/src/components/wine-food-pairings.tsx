@@ -47,7 +47,7 @@ export function WineFoodPairings({ wine, maxItems = 3, isGlassWine = false }: Wi
           <Link key={food.id} href={`/food/${food.id}`}>
             <Badge 
               variant="outline" 
-              className="text-xs cursor-pointer hover-elevate"
+              className="text-xs cursor-pointer ui-transition"
               data-testid={`badge-food-pair-${wine.id}-${food.id}`}
             >
               {food.name.replace(" (GF)", "")}
