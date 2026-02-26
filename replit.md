@@ -78,6 +78,15 @@ shared/           # Shared code between client and server
   pairingRules.ts # Legacy bidirectional wine/food pairing logic
 ```
 
+### Splash Screen
+- **Component**: `client/src/components/SplashIntro.tsx`
+- **Behavior**: Shows "Welcome to Del Bar" overlay on first app load with crossfading food images, warm themed overlay (sand/blush/olive/gold), and accent line animations
+- **Duration**: ~2.2s total (1.2s with reduced motion), then 300ms fade-out
+- **Images**: 3 royalty-free food photos in `client/public/splash/` (preloaded)
+- **Session guard**: `sessionStorage.hasSeenSplash` prevents re-showing within a session
+- **Excluded routes**: `/deck` and `/admin` skip splash entirely
+- **Reduced motion**: Respects `prefers-reduced-motion` — simpler fade, no zoom/line-draw
+
 ### Detail Navigation (Modal Stack)
 - **Pattern**: Modal-only navigation for Wine Detail and Dish Detail (no routes)
 - **State**: `selectedWine`, `selectedDish`, `backToWine` in home.tsx

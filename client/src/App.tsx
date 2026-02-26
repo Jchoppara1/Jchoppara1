@@ -1,9 +1,11 @@
+import { useState, useCallback } from "react";
 import { Switch, Route, Link, useLocation } from "wouter";
 import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { Button } from "@/components/ui/button";
+import { SplashIntro } from "@/components/SplashIntro";
 import Home from "@/pages/home";
 import FoodMenu from "@/pages/food-menu";
 import FoodDetail from "@/pages/food-detail";
@@ -66,9 +68,18 @@ function App() {
   const [location] = useLocation();
   const hideNav = location === "/deck";
 
+  const alreadySeen = typeof sessionStorage !== "undefined" && sessionStorage.getItem("hasSeenSplash") === "1";
+  const [showSplash, setShowSplash] = useState(!alreadySeen && location !== "/deck" && location !== "/admin");
+
+  const handleSplashDone = useCallback(() => {
+    setShowSplash(false);
+    try { sessionStorage.setItem("hasSeenSplash", "1"); } catch {}
+  }, []);
+
   return (
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
+        {showSplash && <SplashIntro onDone={handleSplashDone} />}
         {!hideNav && <NavBar />}
         <Toaster />
         <Router />
