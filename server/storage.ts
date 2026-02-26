@@ -3,7 +3,7 @@ import { type Food, type InsertFood, type FoodFilters, type FoodCategory } from 
 import { applyComputedFields } from "@shared/wineRules";
 import { inferWineProfile, buildWineDescription, getPriceTierFromPercentile, type WineProfile, type WineDescription } from "@shared/wineProfile";
 import { rankWinesForFood, rankFoodsForWine, inferDishProfile, type PairingResult, type FoodPairingResult, type DishProfile } from "@shared/pairingEngine";
-import { classifyWine, type WineTypeKey } from "@shared/wineTypes";
+import { classifyWine, type WineTypeKey, type WineClassification } from "@shared/wineTypes";
 import { randomUUID } from "crypto";
 import * as fs from "fs";
 import * as path from "path";
@@ -85,14 +85,14 @@ function parseCSVLine(line: string): string[] {
   return result;
 }
 
-function classifyWineFromRecord(record: Record<string, string>): WineTypeKey {
+function classifyWineFromRecord(record: Record<string, string>): WineClassification {
   const grapes = record.grape || record.varietal || "";
   const region = record.origin || "";
   const name = record.name || "";
   const notes = record.notes || record.description || "";
   const wineType = record.category || record.wineType || "";
 
-  const classification = classifyWine({
+  return classifyWine({
     name,
     varietal: grapes,
     grapes,
@@ -101,11 +101,14 @@ function classifyWineFromRecord(record: Record<string, string>): WineTypeKey {
     description: notes,
     wineType,
   });
-
-  return classification.typePrimary;
 }
 
-function loadWinesFromCSV(): Omit<InsertWine, "id">[] {
+interface WineWithClassification {
+  wine: Omit<InsertWine, "id">;
+  classification: WineClassification;
+}
+
+function loadWinesFromCSV(): WineWithClassification[] {
   const csvPath = path.join(process.cwd(), 'delbarcsv', 'wine_list.csv');
   
   if (!fs.existsSync(csvPath)) {
@@ -116,15 +119,21 @@ function loadWinesFromCSV(): Omit<InsertWine, "id">[] {
   const content = fs.readFileSync(csvPath, 'utf-8');
   const records = parseCSV(content);
   
-  return records.map(record => ({
-    name: record.name || 'Unknown Wine',
-    wineType: classifyWineFromRecord(record),
-    varietal: record.grape || 'Unknown',
-    priceCents: Math.round(parseFloat(record.price || '0') * 100),
-    description: record.origin 
-      ? `${record.notes || ''} (${record.origin})`
-      : record.notes || undefined,
-  }));
+  return records.map(record => {
+    const classification = classifyWineFromRecord(record);
+    return {
+      wine: {
+        name: record.name || 'Unknown Wine',
+        wineType: classification.typePrimary,
+        varietal: record.grape || 'Unknown',
+        priceCents: Math.round(parseFloat(record.price || '0') * 100),
+        description: record.origin 
+          ? `${record.notes || ''} (${record.origin})`
+          : record.notes || undefined,
+      },
+      classification,
+    };
+  });
 }
 
 function mapCategoryToFoodCategory(category: string): FoodCategory {
@@ -136,7 +145,7 @@ function mapCategoryToFoodCategory(category: string): FoodCategory {
   return "Meats & Seafood";
 }
 
-function loadWinesByGlassFromCSV(): Omit<InsertWine, "id">[] {
+function loadWinesByGlassFromCSV(): WineWithClassification[] {
   const csvPath = path.join(process.cwd(), 'attached_assets', 'wines_by_glass.csv');
   
   if (!fs.existsSync(csvPath)) {
@@ -147,15 +156,21 @@ function loadWinesByGlassFromCSV(): Omit<InsertWine, "id">[] {
   const content = fs.readFileSync(csvPath, 'utf-8');
   const records = parseCSV(content);
   
-  return records.map(record => ({
-    name: record.name || 'Unknown Wine',
-    wineType: classifyWineFromRecord(record),
-    varietal: record.varietal || 'Unknown',
-    priceCents: parseInt(record.priceCents || '0', 10),
-    description: record.origin 
-      ? `${record.description || ''} (${record.origin})`
-      : record.description || undefined,
-  }));
+  return records.map(record => {
+    const classification = classifyWineFromRecord(record);
+    return {
+      wine: {
+        name: record.name || 'Unknown Wine',
+        wineType: classification.typePrimary,
+        varietal: record.varietal || 'Unknown',
+        priceCents: parseInt(record.priceCents || '0', 10),
+        description: record.origin 
+          ? `${record.description || ''} (${record.origin})`
+          : record.description || undefined,
+      },
+      classification,
+    };
+  });
 }
 
 function loadFoodsFromCSV(): Omit<InsertFood, "id">[] {
@@ -176,7 +191,7 @@ function loadFoodsFromCSV(): Omit<InsertFood, "id">[] {
   }));
 }
 
-function makeWineObj(id: string, wine: Omit<InsertWine, "id">, computed: any): Wine {
+function makeWineObj(id: string, wine: Omit<InsertWine, "id">, computed: any, classification: WineClassification | null): Wine {
   return {
     id,
     name: wine.name,
@@ -184,12 +199,22 @@ function makeWineObj(id: string, wine: Omit<InsertWine, "id">, computed: any): W
     varietal: wine.varietal,
     priceCents: wine.priceCents,
     description: wine.description || null,
+    classification,
     priceCategory: computed.priceCategory,
     foodPairings: computed.foodPairings,
     outOfStock: false,
     labels: [],
     updatedAt: new Date(),
   };
+}
+
+function computeClassification(wine: { name: string; varietal?: string; description?: string | null; wineType?: string }): WineClassification {
+  return classifyWine({
+    name: wine.name,
+    varietal: wine.varietal,
+    grapes: wine.varietal,
+    description: wine.description || undefined,
+  });
 }
 
 export class MemStorage implements IStorage {
@@ -237,10 +262,10 @@ export class MemStorage implements IStorage {
   }
 
   private seedWines() {
-    const wines = loadWinesFromCSV();
-    console.log(`Loaded ${wines.length} wines from CSV`);
+    const entries = loadWinesFromCSV();
+    console.log(`Loaded ${entries.length} wines from CSV`);
     
-    for (const wine of wines) {
+    for (const { wine, classification } of entries) {
       const id = randomUUID();
       const computed = applyComputedFields({
         wineType: wine.wineType as any,
@@ -248,7 +273,7 @@ export class MemStorage implements IStorage {
         priceCents: wine.priceCents,
       });
       
-      const wineObj = makeWineObj(id, wine, computed);
+      const wineObj = makeWineObj(id, wine, computed, classification);
       this.wines.set(id, wineObj);
       this.computeProfileAndDescription(wineObj);
     }
@@ -312,6 +337,7 @@ export class MemStorage implements IStorage {
       varietal: insertWine.varietal,
       priceCents: insertWine.priceCents,
     });
+    const classification = computeClassification(insertWine);
     
     const wine: Wine = {
       id,
@@ -320,6 +346,7 @@ export class MemStorage implements IStorage {
       varietal: insertWine.varietal,
       priceCents: insertWine.priceCents,
       description: insertWine.description || null,
+      classification,
       priceCategory: computed.priceCategory,
       foodPairings: computed.foodPairings,
       outOfStock: false,
@@ -347,9 +374,11 @@ export class MemStorage implements IStorage {
       varietal: updated.varietal,
       priceCents: updated.priceCents,
     });
+    const classification = computeClassification(updated);
     
     const wine: Wine = {
       ...updated,
+      classification,
       priceCategory: computed.priceCategory,
       foodPairings: computed.foodPairings,
     };
@@ -364,10 +393,10 @@ export class MemStorage implements IStorage {
   }
 
   private seedWinesByGlass() {
-    const wines = loadWinesByGlassFromCSV();
-    console.log(`Loaded ${wines.length} wines by glass from CSV`);
+    const entries = loadWinesByGlassFromCSV();
+    console.log(`Loaded ${entries.length} wines by glass from CSV`);
     
-    for (const wine of wines) {
+    for (const { wine, classification } of entries) {
       const id = randomUUID();
       const computed = applyComputedFields({
         wineType: wine.wineType as any,
@@ -375,7 +404,7 @@ export class MemStorage implements IStorage {
         priceCents: wine.priceCents,
       });
       
-      const wineObj = makeWineObj(id, wine, computed);
+      const wineObj = makeWineObj(id, wine, computed, classification);
       this.winesByGlass.set(id, wineObj);
       this.computeProfileAndDescription(wineObj);
     }
@@ -523,6 +552,7 @@ export class MemStorage implements IStorage {
       varietal: merged.varietal,
       priceCents: merged.priceCents,
     });
+    merged.classification = computeClassification(merged);
     merged.priceCategory = computed.priceCategory;
     merged.foodPairings = computed.foodPairings;
 
@@ -538,6 +568,7 @@ export class MemStorage implements IStorage {
       varietal: data.varietal,
       priceCents: data.priceCents,
     });
+    const classification = computeClassification(data);
 
     const wine: Wine = {
       id,
@@ -546,6 +577,7 @@ export class MemStorage implements IStorage {
       varietal: data.varietal,
       priceCents: data.priceCents,
       description: data.description || null,
+      classification,
       priceCategory: computed.priceCategory,
       foodPairings: computed.foodPairings,
       outOfStock: false,

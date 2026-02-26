@@ -1,7 +1,7 @@
-import { pgTable, text, varchar, integer, boolean, timestamp } from "drizzle-orm/pg-core";
+import { pgTable, text, varchar, integer, boolean, timestamp, jsonb } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
-import { WINE_TYPE_KEYS, type WineTypeKey } from "./wineTypes";
+import { WINE_TYPE_KEYS, type WineTypeKey, type WineClassification } from "./wineTypes";
 
 export const wineTypes = WINE_TYPE_KEYS;
 export type WineType = WineTypeKey;
@@ -27,6 +27,13 @@ export type FoodPairing = typeof foodPairingOptions[number];
 export const wineLabels = ["Featured", "New", "ByTheGlass", "Reserve"] as const;
 export type WineLabel = typeof wineLabels[number];
 
+export const wineClassificationSchema = z.object({
+  typePrimary: z.enum(wineTypes),
+  typeSecondary: z.array(z.enum(wineTypes)),
+  confidence: z.number(),
+  reasons: z.array(z.string()),
+});
+
 export const wines = pgTable("wines", {
   id: varchar("id", { length: 36 }).primaryKey(),
   name: text("name").notNull(),
@@ -34,6 +41,7 @@ export const wines = pgTable("wines", {
   varietal: text("varietal").notNull(),
   priceCents: integer("price_cents").notNull(),
   description: text("description"),
+  classification: jsonb("classification"),
   priceCategory: varchar("price_category", { length: 10 }).notNull(),
   foodPairings: text("food_pairings").array().notNull(),
   outOfStock: boolean("out_of_stock").default(false).notNull(),
@@ -42,7 +50,7 @@ export const wines = pgTable("wines", {
 });
 
 export const insertWineSchema = createInsertSchema(wines)
-  .omit({ id: true, priceCategory: true, foodPairings: true, outOfStock: true, labels: true, updatedAt: true })
+  .omit({ id: true, classification: true, priceCategory: true, foodPairings: true, outOfStock: true, labels: true, updatedAt: true })
   .extend({
     name: z.string().min(1, "Name is required").max(200),
     wineType: z.enum(wineTypes),
@@ -52,7 +60,7 @@ export const insertWineSchema = createInsertSchema(wines)
   });
 
 export type InsertWine = z.infer<typeof insertWineSchema>;
-export type Wine = typeof wines.$inferSelect;
+export type Wine = typeof wines.$inferSelect & { classification: WineClassification | null };
 
 export const adminWineUpdateSchema = z.object({
   name: z.string().min(1).max(200).optional(),
