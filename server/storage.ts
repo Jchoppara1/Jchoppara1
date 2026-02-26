@@ -332,17 +332,18 @@ export class MemStorage implements IStorage {
 
   async createWine(insertWine: InsertWine): Promise<Wine> {
     const id = randomUUID();
+    const classification = computeClassification(insertWine);
+    const wineType = classification.typePrimary;
     const computed = applyComputedFields({
-      wineType: insertWine.wineType as any,
+      wineType: wineType as any,
       varietal: insertWine.varietal,
       priceCents: insertWine.priceCents,
     });
-    const classification = computeClassification(insertWine);
     
     const wine: Wine = {
       id,
       name: insertWine.name,
-      wineType: insertWine.wineType,
+      wineType,
       varietal: insertWine.varietal,
       priceCents: insertWine.priceCents,
       description: insertWine.description || null,
@@ -369,12 +370,13 @@ export class MemStorage implements IStorage {
       description: updates.description !== undefined ? updates.description || null : existing.description,
     };
     
+    const classification = computeClassification(updated);
+    updated.wineType = classification.typePrimary;
     const computed = applyComputedFields({
       wineType: updated.wineType as any,
       varietal: updated.varietal,
       priceCents: updated.priceCents,
     });
-    const classification = computeClassification(updated);
     
     const wine: Wine = {
       ...updated,
@@ -547,12 +549,13 @@ export class MemStorage implements IStorage {
     if (updates.description !== undefined) merged.description = updates.description;
     merged.updatedAt = new Date();
 
+    merged.classification = computeClassification(merged);
+    merged.wineType = merged.classification.typePrimary;
     const computed = applyComputedFields({
       wineType: merged.wineType as any,
       varietal: merged.varietal,
       priceCents: merged.priceCents,
     });
-    merged.classification = computeClassification(merged);
     merged.priceCategory = computed.priceCategory;
     merged.foodPairings = computed.foodPairings;
 
@@ -563,17 +566,18 @@ export class MemStorage implements IStorage {
 
   async adminCreateWine(data: Record<string, any>, listType: "bottle" | "glass"): Promise<Wine> {
     const id = randomUUID();
+    const classification = computeClassification(data);
+    const wineType = classification.typePrimary;
     const computed = applyComputedFields({
-      wineType: data.wineType as any,
+      wineType: wineType as any,
       varietal: data.varietal,
       priceCents: data.priceCents,
     });
-    const classification = computeClassification(data);
 
     const wine: Wine = {
       id,
       name: data.name,
-      wineType: data.wineType,
+      wineType,
       varietal: data.varietal,
       priceCents: data.priceCents,
       description: data.description || null,
