@@ -1,0 +1,112 @@
+Fix navigation state so when a user opens a Food (Dish) card from a specific Wine card, then taps “Back”, they return to THAT exact Wine card detail (same scroll position + same selected wine), not the general wine list output.
+
+DO NOT redesign UI. Only adjust state + routing/history behavior. Tailwind + shadcn.
+
+------------------------------------------------------------
+GOAL USER FLOW
+------------------------------------------------------------
+1) User is viewing Wine List.
+2) User opens WineDetail for a specific wine (Wine A).
+3) From WineDetail, user clicks a linked Dish/Food card (Dish X).
+4) DishDetail opens.
+5) User clicks Back.
+✅ Expected: returns to WineDetail for Wine A (NOT the wine list), preserving any selected tab/expanded sections and scroll position if possible.
+
+------------------------------------------------------------
+IMPLEMENTATION REQUIREMENTS
+------------------------------------------------------------
+A) Introduce a lightweight navigation stack (detail-to-detail) OR use router state to preserve “returnTo” context.
+
+We need to support both cases:
+- WineDetail opened from WineList
+- WineDetail opened from DishDetail (deep link)
+- DishDetail opened from WineDetail
+
+B) Store the originating context when navigating:
+When opening DishDetail from WineDetail, pass:
+- originType: "wine"
+- originId: <wineId>
+- originScrollY: window.scrollY (or modal scroll container position)
+- optional: originUIState (expanded accordion ids, selected tab)
+
+When opening WineDetail from WineList, pass:
+- originType: "wineList"
+- originScrollY: list scroll position
+
+C) Back behavior:
+- If DishDetail.originType === "wine":
+   - close DishDetail
+   - reopen WineDetail with originId
+   - restore scroll/UI state
+- Else:
+   - fallback to existing behavior
+
+------------------------------------------------------------
+IF YOU ARE USING REACT ROUTER
+------------------------------------------------------------
+- Use navigate("/dish/:id", { state: { returnTo: { type:"wine", id:wineId, scrollY, uiState }}})
+
+- In DishDetail, Back button:
+  const returnTo = location.state?.returnTo
+  if (returnTo?.type === "wine") {
+    navigate(`/wine/${returnTo.id}`, { state: { restore: returnTo } })
+  } else {
+    navigate(-1)
+  }
+
+- In WineDetail, if location.state?.restore exists:
+  restore scroll position + UI state after mount (useEffect with setTimeout/requestAnimationFrame)
+
+------------------------------------------------------------
+IF YOU ARE USING NEXT.JS APP ROUTER
+------------------------------------------------------------
+- Use a global store (Zustand) or Context to store returnTo stack because Next navigation state is limited.
+- Create navStore:
+  pushReturnContext({ type:"wine", id, scrollY, uiState })
+  popReturnContext()
+- When opening DishDetail from WineDetail: pushReturnContext(...)
+- Back button in DishDetail:
+  const ctx = popReturnContext()
+  if ctx?.type === "wine" navigate to wine detail and restore
+
+------------------------------------------------------------
+IF YOU ARE USING MODALS (NO ROUTES)
+------------------------------------------------------------
+If WineDetail and DishDetail are opened via modal state (selectedWine/selectedDish):
+- Add a `detailStack` array state in the parent:
+  type DetailEntry =
+    | { kind:"wine"; wineId:string; scrollTop?:number; uiState?:any }
+    | { kind:"dish"; dishId:string; scrollTop?:number; uiState?:any }
+
+- When opening WineDetail: setStack([{kind:"wine", wineId, ...}])
+- When opening DishDetail from WineDetail:
+   - update top stack entry with current UI/scroll
+   - push {kind:"dish", dishId}
+   - render based on stack top
+
+- Back button:
+   - pop stack
+   - restore previous entry (wine) including scrollTop/UI state
+
+Preserve scroll:
+- If modal has internal scroll container, capture ref.scrollTop before pushing, restore after pop.
+
+------------------------------------------------------------
+SCROLL + UI STATE RESTORE
+------------------------------------------------------------
+- For scroll:
+  - capture either window.scrollY OR modalScrollRef.scrollTop depending on implementation
+  - restore on next tick:
+    requestAnimationFrame(() => window.scrollTo(0, savedY))
+- For UI state:
+  - store selected tab value, expanded accordion ids
+  - restore by passing props into WineDetail component
+
+------------------------------------------------------------
+DELIVERABLES
+------------------------------------------------------------
+1) Identify which navigation pattern the repo uses (React Router / Next / modal-only).
+2) Implement origin/return context so “Dish from Wine -> Back” returns to the SAME wine detail.
+3) Preserve scroll position and key UI state for WineDetail (tab + accordion expansions).
+4) Confirm the flow works on both desktop and mobile.
+5) List modified files.

@@ -552,6 +552,55 @@ function EmptyState({ hasFilters }: { hasFilters: boolean }) {
   );
 }
 
+function WineDebugPanel({ wines }: { wines: EnrichedWine[] }) {
+  const [show, setShow] = useState(false);
+  const isDev = import.meta.env.DEV;
+  const debugEnabled = isDev && typeof localStorage !== "undefined" && localStorage.getItem("debugWine") === "1";
+
+  if (!debugEnabled) return null;
+
+  return (
+    <div className="fixed bottom-0 left-0 right-0 z-50 bg-black/90 text-white text-xs" data-testid="debug-panel">
+      <button
+        onClick={() => setShow(v => !v)}
+        className="w-full px-4 py-1 text-left font-mono hover:bg-white/10"
+        data-testid="debug-toggle"
+      >
+        {show ? "▼" : "▲"} Wine Classification Debug ({wines.length} wines)
+      </button>
+      {show && (
+        <div className="max-h-64 overflow-auto p-2">
+          <table className="w-full font-mono">
+            <thead>
+              <tr className="border-b border-white/20">
+                <th className="text-left p-1">Name</th>
+                <th className="text-left p-1">Primary</th>
+                <th className="text-left p-1">Secondary</th>
+                <th className="text-left p-1">Conf</th>
+                <th className="text-left p-1">Reasons</th>
+              </tr>
+            </thead>
+            <tbody>
+              {wines.map(w => {
+                const cls = (w as any).classification;
+                return (
+                  <tr key={w.id} className="border-b border-white/10 hover:bg-white/5">
+                    <td className="p-1 max-w-[200px] truncate">{w.name}</td>
+                    <td className="p-1">{cls?.typePrimary || w.wineType}</td>
+                    <td className="p-1">{cls?.typeSecondary?.join(", ") || "—"}</td>
+                    <td className="p-1">{cls?.confidence?.toFixed(2) || "?"}</td>
+                    <td className="p-1 max-w-[300px] truncate">{cls?.reasons?.join(", ") || "—"}</td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      )}
+    </div>
+  );
+}
+
 type WineViewMode = "bottle" | "glass";
 
 export default function Home() {
@@ -623,8 +672,14 @@ export default function Home() {
         }
       }
       
-      if (appliedFilters.wineType && wine.wineType !== appliedFilters.wineType) {
-        return false;
+      if (appliedFilters.wineType) {
+        const cls = (wine as any).classification;
+        const matchesPrimary = cls?.typePrimary === appliedFilters.wineType;
+        const matchesSecondary = cls?.typeSecondary?.includes(appliedFilters.wineType);
+        const matchesFallback = wine.wineType === appliedFilters.wineType;
+        if (!matchesPrimary && !matchesSecondary && !matchesFallback) {
+          return false;
+        }
       }
       
       if (appliedFilters.priceCategory && wine.priceCategory !== appliedFilters.priceCategory) {
@@ -858,6 +913,8 @@ export default function Home() {
         }}
         onSelectWine={handleSelectWineFromDish}
       />
+
+      <WineDebugPanel wines={wines || []} />
     </div>
   );
 }

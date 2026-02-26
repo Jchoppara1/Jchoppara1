@@ -197,7 +197,13 @@ function PairingWineCard({
     },
   });
 
-  if (wineColorFilter && wine.wineType !== wineColorFilter) return null;
+  if (wineColorFilter) {
+    const cls = (wine as any).classification;
+    const matchesPrimary = cls?.typePrimary === wineColorFilter;
+    const matchesSecondary = cls?.typeSecondary?.includes(wineColorFilter);
+    const matchesFallback = wine.wineType === wineColorFilter;
+    if (!matchesPrimary && !matchesSecondary && !matchesFallback) return null;
+  }
 
   const { vintage } = extractVintage(wine.name);
   const region = extractRegion(wine.description || "") || (profileData?.profile?.regionCues?.[0] ?? null);
@@ -544,7 +550,12 @@ function PairingDetailPane({
     }
 
     if (appliedWineFilters.colorFilter) {
-      results = results.filter(p => p.wine.wineType === appliedWineFilters.colorFilter);
+      results = results.filter(p => {
+        const cls = (p.wine as any).classification;
+        return cls?.typePrimary === appliedWineFilters.colorFilter ||
+          cls?.typeSecondary?.includes(appliedWineFilters.colorFilter) ||
+          p.wine.wineType === appliedWineFilters.colorFilter;
+      });
     }
 
     return results.slice(0, 3);

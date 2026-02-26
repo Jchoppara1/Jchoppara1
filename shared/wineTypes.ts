@@ -47,6 +47,11 @@ const SPARKLING_KEYWORDS = [
   "spumante",
   "pet-nat",
   "pet nat",
+  "metodo classico",
+  "traditional method",
+  "moscato d'asti",
+  "moscato d asti",
+  "d'asti",
 ];
 
 const ROSE_KEYWORDS = ["rosé", "rose"];
@@ -58,6 +63,7 @@ const FORTIFIED_KEYWORDS = [
   "sherry",
   "madeira",
   "marsala",
+  "vermouth",
   "vin doux naturel",
   "banyuls",
   "rivesaltes",
@@ -74,6 +80,8 @@ const DESSERT_KEYWORDS = [
   "vin santo",
   "demi-sec",
   "doux",
+  "sweet",
+  "dessert",
 ];
 
 const NON_ALCOHOLIC_KEYWORDS = [
@@ -81,6 +89,16 @@ const NON_ALCOHOLIC_KEYWORDS = [
   "dealcoholized",
   "0.0",
 ];
+
+const SPARKLING_REGIONS = [
+  "champagne",
+  "conegliano",
+  "valdobbiadene",
+  "penedes",
+];
+
+const DESSERT_REGIONS = ["sauternes", "tokaj"];
+const FORTIFIED_REGIONS = ["jerez", "montilla-moriles", "madeira"];
 
 const RED_GRAPES = [
   "cabernet sauvignon",
@@ -145,6 +163,8 @@ function normalize(text?: string): string {
     .toLowerCase()
     .normalize("NFD")
     .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[\u2018\u2019\u201A\u201B]/g, "'")
+    .replace(/[\u201C\u201D\u201E\u201F]/g, '"')
     .replace(/\s+/g, " ")
     .trim();
 }
@@ -158,6 +178,7 @@ function containsAny(haystack: string, needles: string[]): string | null {
 
 export function classifyWine(wine: WineInput): WineClassification {
   const reasons: string[] = [];
+  const secondary: WineTypeKey[] = [];
 
   const grapeStr = Array.isArray(wine.grapes)
     ? wine.grapes.join(" ")
@@ -184,58 +205,121 @@ export function classifyWine(wine: WineInput): WineClassification {
   }
 
   const fortifiedMatch = containsAny(searchable, FORTIFIED_KEYWORDS);
+  const dessertMatch = containsAny(searchable, DESSERT_KEYWORDS);
+  const orangeMatch = containsAny(searchable, ORANGE_KEYWORDS);
+  const sparklingMatch = containsAny(searchable, SPARKLING_KEYWORDS);
+  const roseMatch = containsAny(searchable, ROSE_KEYWORDS);
+
   if (fortifiedMatch) {
     reasons.push(`keyword:${fortifiedMatch}`);
-    return { typePrimary: "fortified", typeSecondary: [], confidence: 0.95, reasons };
+    if (dessertMatch) {
+      secondary.push("dessert");
+      reasons.push(`keyword:${dessertMatch}`);
+    }
+    return { typePrimary: "fortified", typeSecondary: secondary, confidence: 0.98, reasons };
   }
 
-  const dessertMatch = containsAny(searchable, DESSERT_KEYWORDS);
-  if (dessertMatch) {
-    reasons.push(`keyword:${dessertMatch}`);
-    return { typePrimary: "dessert", typeSecondary: [], confidence: 0.9, reasons };
-  }
-
-  const orangeMatch = containsAny(searchable, ORANGE_KEYWORDS);
   if (orangeMatch) {
     reasons.push(`keyword:${orangeMatch}`);
-    return { typePrimary: "orange", typeSecondary: [], confidence: 0.95, reasons };
+    return { typePrimary: "orange", typeSecondary: [], confidence: 0.98, reasons };
   }
 
-  const sparklingMatch = containsAny(searchable, SPARKLING_KEYWORDS);
   if (sparklingMatch) {
     reasons.push(`keyword:${sparklingMatch}`);
-    return { typePrimary: "sparkling", typeSecondary: [], confidence: 0.95, reasons };
+    if (roseMatch) {
+      secondary.push("rose");
+      reasons.push(`keyword:${roseMatch}`);
+    }
+    if (dessertMatch || searchable.includes("d'asti") || searchable.includes("dasti") || searchable.includes("asti spumante")) {
+      if (!secondary.includes("dessert")) secondary.push("dessert");
+      if (dessertMatch) reasons.push(`keyword:${dessertMatch}`);
+      else reasons.push("keyword:asti");
+    }
+    return { typePrimary: "sparkling", typeSecondary: secondary, confidence: 0.98, reasons };
   }
 
-  const roseMatch = containsAny(searchable, ROSE_KEYWORDS);
   if (roseMatch) {
     reasons.push(`keyword:${roseMatch}`);
-    return { typePrimary: "rose", typeSecondary: [], confidence: 0.95, reasons };
+    return { typePrimary: "rose", typeSecondary: [], confidence: 0.98, reasons };
+  }
+
+  if (dessertMatch) {
+    reasons.push(`keyword:${dessertMatch}`);
+    return { typePrimary: "dessert", typeSecondary: [], confidence: 0.92, reasons };
+  }
+
+  const sparklingRegion = containsAny(searchable, SPARKLING_REGIONS);
+  if (sparklingRegion) {
+    reasons.push(`region:${sparklingRegion}`);
+    const regionSecondary: WineTypeKey[] = [];
+    if (dessertMatch) {
+      regionSecondary.push("dessert");
+      reasons.push(`keyword:${dessertMatch}`);
+    }
+    if (roseMatch) {
+      regionSecondary.push("rose");
+      reasons.push(`keyword:${roseMatch}`);
+    }
+    return { typePrimary: "sparkling", typeSecondary: regionSecondary, confidence: 0.95, reasons };
+  }
+
+  const dessertRegion = containsAny(searchable, DESSERT_REGIONS);
+  if (dessertRegion) {
+    reasons.push(`region:${dessertRegion}`);
+    return { typePrimary: "dessert", typeSecondary: [], confidence: 0.90, reasons };
+  }
+
+  const fortifiedRegion = containsAny(searchable, FORTIFIED_REGIONS);
+  if (fortifiedRegion) {
+    reasons.push(`region:${fortifiedRegion}`);
+    return { typePrimary: "fortified", typeSecondary: [], confidence: 0.90, reasons };
   }
 
   const grapeNormalized = normalize(grapeStr);
   if (grapeNormalized) {
-    const redMatch = containsAny(grapeNormalized, RED_GRAPES);
-    if (redMatch) {
-      reasons.push(`grape:${redMatch}`);
-      return { typePrimary: "red", typeSecondary: [], confidence: 0.85, reasons };
+    const grapeList = grapeNormalized.split(/,\s*/).map(g => g.trim()).filter(Boolean);
+    let redCount = 0;
+    let whiteCount = 0;
+    let firstRed = "";
+    let firstWhite = "";
+
+    for (const grape of grapeList) {
+      const rMatch = containsAny(grape, RED_GRAPES);
+      if (rMatch) { redCount++; if (!firstRed) firstRed = rMatch; }
+      const wMatch = containsAny(grape, WHITE_GRAPES);
+      if (wMatch) { whiteCount++; if (!firstWhite) firstWhite = wMatch; }
     }
 
-    const whiteMatch = containsAny(grapeNormalized, WHITE_GRAPES);
-    if (whiteMatch) {
-      reasons.push(`grape:${whiteMatch}`);
-      return { typePrimary: "white", typeSecondary: [], confidence: 0.85, reasons };
+    if (redCount > 0 && whiteCount === 0) {
+      reasons.push(`grape:${firstRed}`);
+      return { typePrimary: "red", typeSecondary: [], confidence: 0.88, reasons };
+    }
+    if (whiteCount > 0 && redCount === 0) {
+      reasons.push(`grape:${firstWhite}`);
+      return { typePrimary: "white", typeSecondary: [], confidence: 0.88, reasons };
+    }
+    if (redCount > 0 && whiteCount > 0) {
+      if (redCount > whiteCount) {
+        reasons.push(`grape:${firstRed}(mixed)`);
+        return { typePrimary: "red", typeSecondary: [], confidence: 0.65, reasons };
+      }
+      if (whiteCount > redCount) {
+        reasons.push(`grape:${firstWhite}(mixed)`);
+        return { typePrimary: "white", typeSecondary: [], confidence: 0.65, reasons };
+      }
+      reasons.push(`grape:mixed(${firstRed}+${firstWhite})`);
+      return { typePrimary: "red", typeSecondary: ["white"], confidence: 0.50, reasons };
     }
   }
 
   if (searchable.includes("rouge") || searchable.includes("rosso")) {
     reasons.push("language:red");
-    return { typePrimary: "red", typeSecondary: [], confidence: 0.7, reasons };
+    return { typePrimary: "red", typeSecondary: [], confidence: 0.70, reasons };
   }
 
   if (searchable.includes("blanc") || searchable.includes("bianco")) {
     reasons.push("language:white");
-    return { typePrimary: "white", typeSecondary: [], confidence: 0.7, reasons };
+    return { typePrimary: "white", typeSecondary: [], confidence: 0.70, reasons };
   }
 
   if (wine.wineType) {
@@ -247,14 +331,14 @@ export function classifyWine(wine: WineInput): WineClassification {
     const mapped = fallbackMap[wt];
     if (mapped) {
       reasons.push(`fallback:wineType=${wine.wineType}`);
-      return { typePrimary: mapped, typeSecondary: [], confidence: 0.5, reasons };
+      return { typePrimary: mapped, typeSecondary: [], confidence: 0.50, reasons };
     }
   }
 
   return {
     typePrimary: "white",
     typeSecondary: [],
-    confidence: 0.4,
+    confidence: 0.40,
     reasons: ["fallback:default_white"],
   };
 }
