@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Collapsible, CollapsibleTrigger, CollapsibleContent } from "@/components/ui/collapsible";
-import { Wine, Check, ChevronDown, ChevronRight, AlertTriangle } from "lucide-react";
+import { Wine, Check, ChevronDown, ChevronRight, AlertTriangle, ArrowLeft } from "lucide-react";
 import { tierColor, tierBarColor } from "@shared/calibrateMatch";
 import { apiRequest } from "@/lib/queryClient";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -58,6 +58,8 @@ interface DishDetailModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onSelectWine?: (wineId: string) => void;
+  backLabel?: string;
+  onBack?: () => void;
 }
 
 const categoryColors: Record<string, string> = {
@@ -383,7 +385,7 @@ function DishDetailContent({
   );
 }
 
-export function DishDetailModal({ food, open, onOpenChange, onSelectWine }: DishDetailModalProps) {
+export function DishDetailModal({ food, open, onOpenChange, onSelectWine, backLabel, onBack }: DishDetailModalProps) {
   const isMobile = useIsMobile();
 
   if (!food) return null;
@@ -393,6 +395,17 @@ export function DishDetailModal({ food, open, onOpenChange, onSelectWine }: Dish
 
   const headerContent = (
     <div className="bg-delbar-pattern px-6 pt-6 pb-5 border-b border-gold/30 relative">
+      {backLabel && onBack && (
+        <button
+          className="flex items-center gap-1 text-xs text-muted-foreground mb-3 hover:text-foreground transition-colors"
+          onClick={onBack}
+          aria-label={backLabel}
+          data-testid="button-back-to-wine"
+        >
+          <ArrowLeft className="h-3 w-3" />
+          {backLabel}
+        </button>
+      )}
       <div className="flex items-start justify-between gap-4">
         <div className="min-w-0 flex-1 space-y-1.5">
           {isMobile ? (

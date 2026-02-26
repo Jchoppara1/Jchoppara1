@@ -907,11 +907,16 @@ export default function Home() {
         open={!!selectedDish}
         onOpenChange={(open) => {
           if (!open) {
-            setSelectedDish(null);
-            setBackToWine(null);
+            if (backToWine) {
+              handleBackToWine();
+            } else {
+              setSelectedDish(null);
+            }
           }
         }}
         onSelectWine={handleSelectWineFromDish}
+        backLabel={backToWine ? `Back to ${backToWine.name}` : undefined}
+        onBack={backToWine ? handleBackToWine : undefined}
       />
 
       <WineDebugPanel wines={wines || []} />

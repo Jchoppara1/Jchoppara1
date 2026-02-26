@@ -39,7 +39,7 @@ Preferred communication style: Simple, everyday language.
 - **Current Storage**: In-memory storage implementation with interface for future database integration
 
 ### Business Logic
-- **Wine Type Classification**: 8-category system (red, white, rose, sparkling, orange, fortified, dessert, nonAlcoholic) with keyword-precedence classifier in shared/wineTypes.ts; full WineClassification (typePrimary, typeSecondary, confidence, reasons) stored on each Wine object
+- **Wine Type Classification**: 8-category system (red, white, rose, sparkling, orange, fortified, dessert, nonAlcoholic) with production-grade precedence classifier in shared/wineTypes.ts; supports dual tagging (typeSecondary), safe "Brut" handling, region inference, grape dictionary, language hints, and confidence scoring tiers (0.98+ definitive, 0.85-0.92 grape, 0.65-0.75 language, 0.40-0.55 fallback); full WineClassification (typePrimary, typeSecondary, confidence, reasons) stored on each Wine object
 - **Wine Type UI**: Centralized color map and label helper in client/src/lib/wineTypeColors.ts; all display uses wineTypeLabel() for human-readable names
 - **Wine Profile Inference**: Grape variety database drives body/acidity/tannin/sweetness/oak profiling (shared/wineProfile.ts)
 - **Structured Descriptions**: Auto-generated headline, aromas, palate notes, serving suggestions per wine
@@ -77,6 +77,13 @@ shared/           # Shared code between client and server
   pairingEngine.ts # Scoring-based pairing algorithm with explanations
   pairingRules.ts # Legacy bidirectional wine/food pairing logic
 ```
+
+### Detail Navigation (Modal Stack)
+- **Pattern**: Modal-only navigation for Wine Detail and Dish Detail (no routes)
+- **State**: `selectedWine`, `selectedDish`, `backToWine` in home.tsx
+- **Flow**: Wine card click → WineDetailModal → food pairing click → DishDetailModal (with "Back to [wine]" button) → back returns to same WineDetailModal
+- **Back behavior**: DishDetailModal shows "Back to [wine name]" button and closing via X/overlay also returns to wine when there's a return context
+- **Dev Debug Panel**: Set `localStorage.debugWine = "1"` in dev mode to show classification debug table at bottom of wine list
 
 ### Filter UX Pattern
 - **Deferred Apply**: All filter UIs use a draft/applied two-state pattern
