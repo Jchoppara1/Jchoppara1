@@ -35,7 +35,8 @@ interface AdminUser {
   email: string;
 }
 
-const wineTypes = ["Red", "White", "Rosé", "Sparkling"] as const;
+import { wineTypeColors, wineTypeLabel, WINE_TYPES } from "@/lib/wineTypeColors";
+import { wineTypes } from "@shared/schema";
 
 function LoginForm({ onLogin }: { onLogin: () => void }) {
   const { toast } = useToast();
@@ -220,7 +221,7 @@ function WineDialog({
   isPending: boolean;
 }) {
   const [name, setName] = useState("");
-  const [wineType, setWineType] = useState<string>("Red");
+  const [wineType, setWineType] = useState<string>("red");
   const [varietal, setVarietal] = useState("");
   const [priceDisplay, setPriceDisplay] = useState("");
   const [description, setDescription] = useState("");
@@ -235,7 +236,7 @@ function WineDialog({
         setDescription(wine.description || "");
       } else {
         setName("");
-        setWineType("Red");
+        setWineType("red");
         setVarietal("");
         setPriceDisplay("");
         setDescription("");
@@ -270,7 +271,7 @@ function WineDialog({
                 </SelectTrigger>
                 <SelectContent>
                   {wineTypes.map((t) => (
-                    <SelectItem key={t} value={t}>{t}</SelectItem>
+                    <SelectItem key={t} value={t}>{wineTypeLabel(t)}</SelectItem>
                   ))}
                 </SelectContent>
               </Select>
@@ -638,7 +639,7 @@ function WinesTab() {
               {wines?.map((wine) => (
                 <TableRow key={wine.id} data-testid={`row-wine-${wine.id}`}>
                   <TableCell className="font-medium" data-testid={`text-wine-name-${wine.id}`}>{wine.name}</TableCell>
-                  <TableCell data-testid={`text-wine-type-${wine.id}`}>{wine.wineType}</TableCell>
+                  <TableCell data-testid={`text-wine-type-${wine.id}`}>{wineTypeLabel(wine.wineType)}</TableCell>
                   <TableCell data-testid={`text-wine-varietal-${wine.id}`}>{wine.varietal}</TableCell>
                   <TableCell data-testid={`text-wine-price-${wine.id}`}>${(wine.priceCents / 100).toFixed(2)}</TableCell>
                   <TableCell>

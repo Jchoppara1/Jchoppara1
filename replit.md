@@ -39,6 +39,8 @@ Preferred communication style: Simple, everyday language.
 - **Current Storage**: In-memory storage implementation with interface for future database integration
 
 ### Business Logic
+- **Wine Type Classification**: 8-category system (red, white, rose, sparkling, orange, fortified, dessert, nonAlcoholic) with keyword-precedence classifier in shared/wineTypes.ts
+- **Wine Type UI**: Centralized color map and label helper in client/src/lib/wineTypeColors.ts; all display uses wineTypeLabel() for human-readable names
 - **Wine Profile Inference**: Grape variety database drives body/acidity/tannin/sweetness/oak profiling (shared/wineProfile.ts)
 - **Structured Descriptions**: Auto-generated headline, aromas, palate notes, serving suggestions per wine
 - **Scoring-Based Pairings**: 6-dimension weighted algorithm (intensity 0.25, acid-fat 0.2, tannin-protein 0.2, spice 0.15, sauce 0.1, regional 0.1) in shared/pairingEngine.ts

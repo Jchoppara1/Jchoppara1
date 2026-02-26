@@ -9,6 +9,7 @@ import { tierColor, tierBarColor } from "@shared/calibrateMatch";
 import { formatPrice } from "@shared/wineRules";
 import { apiRequest } from "@/lib/queryClient";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { wineTypeColors, wineTypeLabel } from "@/lib/wineTypeColors";
 import { useState } from "react";
 
 interface WineProfile {
@@ -62,13 +63,6 @@ interface WineDetailModalProps {
   onBack?: () => void;
 }
 
-const wineTypeColors: Record<string, string> = {
-  Red: "bg-accent text-accent-foreground",
-  White: "bg-secondary text-secondary-foreground",
-  "Rosé": "bg-blush/40 text-terracotta dark:bg-blush dark:text-terracotta",
-  Sparkling: "bg-gold/10 text-gold dark:bg-gold/20 dark:text-gold",
-};
-
 const categoryColors: Record<string, string> = {
   "Mazzes": "bg-gold/10 text-gold dark:bg-gold/20",
   "Spreads": "bg-olive/10 text-olive dark:bg-olive/20",
@@ -114,13 +108,15 @@ function WineDetailContent({
   const desc = wine.wineDescription;
   const topPairings = pairings?.slice(0, 5) || [];
 
-  const servingTemp = wine.wineType === "Sparkling" ? "4-7°C (40-45°F)"
-    : wine.wineType === "White" || wine.wineType === "Rosé" ? "7-10°C (45-50°F)"
+  const servingTemp = wine.wineType === "sparkling" ? "4-7°C (40-45°F)"
+    : ["white", "rose", "orange"].includes(wine.wineType) ? "7-10°C (45-50°F)"
+    : ["fortified", "dessert"].includes(wine.wineType) ? "10-14°C (50-57°F)"
     : profile?.body === "light" ? "12-14°C (54-57°F)"
     : "16-18°C (61-65°F)";
 
-  const glassType = wine.wineType === "Sparkling" ? "Flute or coupe"
-    : wine.wineType === "White" || wine.wineType === "Rosé" ? "Standard white wine glass"
+  const glassType = wine.wineType === "sparkling" ? "Flute or coupe"
+    : ["white", "rose", "orange"].includes(wine.wineType) ? "Standard white wine glass"
+    : wine.wineType === "fortified" ? "Small tulip or copita glass"
     : profile?.body === "full" ? "Large Bordeaux glass"
     : "Standard red wine glass";
 
@@ -322,7 +318,7 @@ export function WineDetailModal({ wine, open, onOpenChange, isGlassWine = false,
           )}
           <div className="flex items-center gap-1.5 flex-wrap pt-1">
             <Badge className={`text-xs ${wineTypeColors[wine.wineType]}`} data-testid="badge-wine-detail-type">
-              {wine.wineType}
+              {wineTypeLabel(wine.wineType)}
             </Badge>
           </div>
         </div>

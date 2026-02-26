@@ -184,7 +184,7 @@ export function inferWineProfile(wine: { wineType: string; varietal: string; des
     color: wine.wineType.toLowerCase(),
     body: "medium",
     acidity: "medium",
-    tannin: wine.wineType === "Red" ? "medium" : "none",
+    tannin: wine.wineType === "red" ? "medium" : "none",
     sweetness: "dry",
     oak: "none",
     flavorNotes: [],
@@ -254,23 +254,27 @@ export function inferWineProfile(wine: { wineType: string; varietal: string; des
     }
   }
 
-  if (wine.wineType === "Sparkling") {
+  if (wine.wineType === "sparkling") {
     profile.tannin = "none";
     if (profile.acidity === "low") profile.acidity = "medium";
   }
-  if (wine.wineType === "Rosé") {
+  if (wine.wineType === "rose") {
     profile.tannin = profile.tannin === "high" ? "low" : profile.tannin === "medium" ? "low" : "none";
   }
-  if (wine.wineType === "White") {
-    profile.tannin = "none";
+  if (wine.wineType === "white" || wine.wineType === "orange") {
+    profile.tannin = wine.wineType === "orange" ? (profile.tannin === "none" ? "low" : profile.tannin) : "none";
   }
 
   if (profile.flavorNotes.length === 0) {
     switch (wine.wineType) {
-      case "Red": profile.flavorNotes = ["red fruit", "spice", "earth"]; break;
-      case "White": profile.flavorNotes = ["citrus", "stone fruit", "mineral"]; break;
-      case "Rosé": profile.flavorNotes = ["strawberry", "citrus", "herbs"]; break;
-      case "Sparkling": profile.flavorNotes = ["citrus", "toast", "apple"]; break;
+      case "red": profile.flavorNotes = ["red fruit", "spice", "earth"]; break;
+      case "white": profile.flavorNotes = ["citrus", "stone fruit", "mineral"]; break;
+      case "rose": profile.flavorNotes = ["strawberry", "citrus", "herbs"]; break;
+      case "sparkling": profile.flavorNotes = ["citrus", "toast", "apple"]; break;
+      case "orange": profile.flavorNotes = ["dried fruit", "honey", "nuts"]; break;
+      case "fortified": profile.flavorNotes = ["dried fruit", "caramel", "nuts"]; break;
+      case "dessert": profile.flavorNotes = ["honey", "stone fruit", "floral"]; break;
+      case "nonAlcoholic": profile.flavorNotes = ["fruit", "herbs", "citrus"]; break;
     }
   }
 
@@ -363,16 +367,19 @@ export function buildWineDescription(
   const pairingTags = derivePairingTagsFromProfile(profile, wine.wineType);
 
   const servingSuggestions: string[] = [];
-  if (wine.wineType === "Sparkling" || wine.wineType === "White" || wine.wineType === "Rosé") {
+  if (["sparkling", "white", "rose", "orange"].includes(wine.wineType)) {
     servingSuggestions.push("Serve chilled (45-50°F)");
+  } else if (wine.wineType === "fortified" || wine.wineType === "dessert") {
+    servingSuggestions.push("Serve slightly chilled (55-60°F)");
   } else if (profile.body === "light") {
     servingSuggestions.push("Serve slightly chilled (55-60°F)");
   } else {
     servingSuggestions.push("Serve at room temperature (60-65°F)");
   }
 
-  if (wine.wineType === "Sparkling") servingSuggestions.push("Flute or tulip glass");
-  else if (wine.wineType === "White" || wine.wineType === "Rosé") servingSuggestions.push("White wine glass");
+  if (wine.wineType === "sparkling") servingSuggestions.push("Flute or tulip glass");
+  else if (["white", "rose", "orange"].includes(wine.wineType)) servingSuggestions.push("White wine glass");
+  else if (wine.wineType === "fortified") servingSuggestions.push("Small tulip or copita glass");
   else if (profile.body === "full") servingSuggestions.push("Large Bordeaux glass");
   else servingSuggestions.push("Burgundy glass");
 
@@ -399,17 +406,23 @@ function derivePairingTagsFromProfile(profile: WineProfile, wineType: string): s
     tags.push("Grilled Red Meat", "Aged Cheese", "Braised Dishes");
   } else if (profile.body === "full" && profile.tannin !== "high") {
     tags.push("Roasted Meats", "Rich Sauces", "Hard Cheese");
-  } else if (profile.body === "medium" && wineType === "Red") {
+  } else if (profile.body === "medium" && wineType === "red") {
     tags.push("Lamb", "Poultry", "Mushroom Dishes");
-  } else if (profile.body === "light" && wineType === "Red") {
+  } else if (profile.body === "light" && wineType === "red") {
     tags.push("Salmon", "Poultry", "Charcuterie");
-  } else if (wineType === "Sparkling") {
+  } else if (wineType === "sparkling") {
     tags.push("Appetizers", "Fried Foods", "Fresh Seafood");
-  } else if (wineType === "Rosé") {
+  } else if (wineType === "rose") {
     tags.push("Mediterranean Cuisine", "Light Salads", "Grilled Vegetables");
-  } else if (profile.acidity === "high" && wineType === "White") {
+  } else if (wineType === "orange") {
+    tags.push("Spiced Dishes", "Aged Cheese", "Charcuterie");
+  } else if (wineType === "fortified") {
+    tags.push("Blue Cheese", "Chocolate Desserts", "Nuts");
+  } else if (wineType === "dessert") {
+    tags.push("Fruit Desserts", "Foie Gras", "Soft Cheese");
+  } else if (profile.acidity === "high" && wineType === "white") {
     tags.push("Seafood", "Salads", "Goat Cheese");
-  } else if (profile.body === "medium" && wineType === "White") {
+  } else if (profile.body === "medium" && wineType === "white") {
     tags.push("Poultry", "Creamy Pasta", "Soft Cheese");
   } else {
     tags.push("Light Appetizers", "Fresh Fish", "Salads");

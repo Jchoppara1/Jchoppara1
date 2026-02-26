@@ -1,10 +1,14 @@
 import type { WineType, FoodPairing, PriceCategory } from "./schema";
 
 const wineTypePairings: Record<WineType, FoodPairing[]> = {
-  Red: ["Beef", "Lamb", "Pasta", "Cheese"],
-  White: ["Seafood", "Fish", "Poultry", "Salads"],
-  Rosé: ["Salads", "Appetizers", "Seafood", "Spicy Food"],
-  Sparkling: ["Appetizers", "Desserts", "Seafood", "Cheese"],
+  red: ["Beef", "Lamb", "Pasta", "Cheese"],
+  white: ["Seafood", "Fish", "Poultry", "Salads"],
+  rose: ["Salads", "Appetizers", "Seafood", "Spicy Food"],
+  sparkling: ["Appetizers", "Desserts", "Seafood", "Cheese"],
+  orange: ["Seafood", "Spicy Food", "Cheese", "Appetizers"],
+  fortified: ["Cheese", "Desserts", "Appetizers"],
+  dessert: ["Desserts", "Cheese", "Appetizers"],
+  nonAlcoholic: ["Salads", "Appetizers", "Seafood", "Spicy Food"],
 };
 
 const varietalOverrides: Record<string, FoodPairing[]> = {

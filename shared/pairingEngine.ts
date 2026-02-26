@@ -228,7 +228,7 @@ export function scorePairing(
       else if (wineAcid > 0.6) sauceMatch = 0.7;
       break;
     case "citrus":
-      if (wineAcid > 0.6 && wine.wineType === "White") sauceMatch = 0.9;
+      if (wineAcid > 0.6 && wine.wineType === "white") sauceMatch = 0.9;
       break;
     case "chili":
       if (wineSweetness > 0.3 || (wineAcid > 0.6 && wineTannin < 0.4)) sauceMatch = 0.8;
@@ -236,16 +236,16 @@ export function scorePairing(
       break;
     case "tahini":
     case "yogurt":
-      if (wineAcid > 0.5 && (wine.wineType === "White" || wine.wineType === "Sparkling")) sauceMatch = 0.8;
-      else if (wine.wineType === "Rosé") sauceMatch = 0.7;
+      if (wineAcid > 0.5 && (wine.wineType === "white" || wine.wineType === "sparkling")) sauceMatch = 0.8;
+      else if (wine.wineType === "rose") sauceMatch = 0.7;
       break;
     case "herb":
       if (wineProfile.flavorNotes.some(n => ["herbs", "herbal", "grass", "green"].includes(n))) sauceMatch = 0.9;
-      else if (wine.wineType === "White" && wineAcid > 0.5) sauceMatch = 0.7;
+      else if (wine.wineType === "white" && wineAcid > 0.5) sauceMatch = 0.7;
       break;
     case "tomato":
       if (wineAcid > 0.6) sauceMatch = 0.8;
-      if (wineTannin > 0.3 && wine.wineType === "Red") sauceMatch = 0.85;
+      if (wineTannin > 0.3 && wine.wineType === "red") sauceMatch = 0.85;
       break;
   }
 
@@ -259,8 +259,8 @@ export function scorePairing(
   if (varietalLower.includes("riesling") && dishProfile.spiceLevel > 0.5) regionalBonus = 0.25;
   if (regionStr.includes("bekaa") && ["lamb", "beef"].includes(dishProfile.protein)) regionalBonus = 0.2;
   if (regionStr.includes("greece") && dishProfile.dominantSauce === "yogurt") regionalBonus = 0.2;
-  if (regionStr.includes("provence") && wine.wineType === "Rosé" && dishProfile.dominantSauce === "herb") regionalBonus = 0.2;
-  if (wine.wineType === "Sparkling" && (dishProfile.dominantSauce === "tahini" || dishProfile.dominantSauce === "yogurt")) {
+  if (regionStr.includes("provence") && wine.wineType === "rose" && dishProfile.dominantSauce === "herb") regionalBonus = 0.2;
+  if (wine.wineType === "sparkling" && (dishProfile.dominantSauce === "tahini" || dishProfile.dominantSauce === "yogurt")) {
     regionalBonus = Math.max(regionalBonus, 0.15);
   }
 

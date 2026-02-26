@@ -10,6 +10,7 @@ import { tierColor, tierBarColor } from "@shared/calibrateMatch";
 import type { Food } from "@shared/foodSchema";
 import type { Wine as WineType } from "@shared/schema";
 import { apiRequest } from "@/lib/queryClient";
+import { wineTypeColors, wineTypeLabel } from "@/lib/wineTypeColors";
 
 interface PairingResult {
   wine: WineType;
@@ -36,13 +37,6 @@ const categoryColors: Record<string, string> = {
   "Spreads": "bg-olive/10 text-olive dark:bg-olive/20",
   "Greens & Grains": "bg-olive/15 text-olive dark:bg-olive/25",
   "Meats & Seafood": "bg-terracotta/10 text-terracotta dark:bg-terracotta/20",
-};
-
-const wineTypeColors: Record<string, string> = {
-  Red: "bg-accent text-accent-foreground",
-  White: "bg-secondary text-secondary-foreground",
-  "Rosé": "bg-blush/40 text-terracotta dark:bg-blush dark:text-terracotta",
-  Sparkling: "bg-gold/10 text-gold dark:bg-gold/20 dark:text-gold",
 };
 
 function ScoreBar({ value, label }: { value: number; label: string }) {
@@ -81,7 +75,7 @@ function PairingCard({ pairing, listLabel }: { pairing: PairingResult; listLabel
                 {pairing.wine.name}
               </h3>
               <Badge className={wineTypeColors[pairing.wine.wineType]} data-testid={`badge-pairing-type-${pairing.wine.id}`}>
-                {pairing.wine.wineType}
+                {wineTypeLabel(pairing.wine.wineType)}
               </Badge>
               <Badge variant="outline" className="text-xs">
                 {listLabel}

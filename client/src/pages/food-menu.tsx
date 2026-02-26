@@ -12,6 +12,7 @@ import { apiRequest } from "@/lib/queryClient";
 import { useIsMobile } from "@/hooks/use-mobile";
 import type { Food, FoodCategory } from "@shared/foodSchema";
 import { tierColor, tierBarColor } from "@shared/calibrateMatch";
+import { wineTypeColors, wineTypeLabel, WINE_TYPES, type WineTypeKey } from "@/lib/wineTypeColors";
 
 interface PairingResult {
   wine: {
@@ -70,13 +71,6 @@ const categoryColors: Record<string, string> = {
   "Meats & Seafood": "bg-terracotta/10 text-terracotta dark:bg-terracotta/20",
 };
 
-const wineTypeColors: Record<string, string> = {
-  Red: "bg-accent text-accent-foreground",
-  White: "bg-secondary text-secondary-foreground",
-  "Rosé": "bg-blush/40 text-terracotta dark:bg-blush dark:text-terracotta",
-  Sparkling: "bg-gold/10 text-gold dark:bg-gold/20 dark:text-gold",
-};
-
 const priceCategoryColors: Record<string, string> = {
   "$": "bg-olive/10 text-olive dark:bg-olive/20 dark:text-olive",
   "$$": "bg-secondary text-secondary-foreground",
@@ -85,7 +79,7 @@ const priceCategoryColors: Record<string, string> = {
 };
 
 type DishFilter = "vegetarian" | "spicy" | "seafood" | "red_meat";
-type WineColorFilter = "Red" | "White" | "Rosé" | "Sparkling";
+type WineColorFilter = WineTypeKey;
 
 function inferDishTraits(food: Food) {
   const name = food.name.toLowerCase();
@@ -253,7 +247,7 @@ function PairingWineCard({
 
         <div className="flex items-center gap-1.5 flex-wrap">
           <Badge className={`text-xs ${wineTypeColors[wine.wineType]}`} data-testid={`badge-pairing-type-${wine.id}`}>
-            {wine.wineType}
+            {wineTypeLabel(wine.wineType)}
           </Badge>
           <Badge className={`text-xs ${priceCategoryColors[wine.priceCategory]}`} data-testid={`badge-pairing-price-${wine.id}`}>
             {wine.priceCategory}
@@ -466,7 +460,7 @@ function WineColorFilterBar({
   activeColor: WineColorFilter | null;
   onChange: (c: WineColorFilter | null) => void;
 }) {
-  const colors: WineColorFilter[] = ["Red", "White", "Rosé", "Sparkling"];
+  const colors: WineColorFilter[] = WINE_TYPES.map(t => t.key);
 
   return (
     <div className="flex items-center gap-1.5 flex-wrap">
@@ -479,7 +473,7 @@ function WineColorFilterBar({
           onClick={() => onChange(activeColor === color ? null : color)}
           data-testid={`filter-wine-color-${color.toLowerCase()}`}
         >
-          {color}
+          {wineTypeLabel(color)}
         </Button>
       ))}
     </div>

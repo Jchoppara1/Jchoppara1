@@ -1,6 +1,7 @@
 import { useState, useMemo } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { Wine, WineFilters, wineTypes, priceCategories, foodPairingOptions } from "@shared/schema";
+import { wineTypeColors, wineTypeLabel, WINE_TYPES } from "@/lib/wineTypeColors";
 import { queryClient, apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
@@ -43,7 +44,7 @@ interface EnrichedWine extends Wine {
 
 const formSchema = z.object({
   name: z.string().min(1, "Name is required").max(200),
-  wineType: z.enum(["Red", "White", "Rosé", "Sparkling"]),
+  wineType: z.enum(wineTypes),
   varietal: z.string().min(1, "Varietal is required").max(100),
   priceCents: z.number().int().min(0, "Price must be positive"),
   description: z.string().max(1000).optional(),
@@ -88,12 +89,6 @@ function WineCard({
   onSelect: (wine: EnrichedWine) => void;
   isGlass?: boolean;
 }) {
-  const wineTypeColors: Record<string, string> = {
-    Red: "bg-accent text-accent-foreground",
-    White: "bg-secondary text-secondary-foreground",
-    "Rosé": "bg-blush/40 text-terracotta dark:bg-blush dark:text-terracotta",
-    Sparkling: "bg-gold/10 text-gold dark:bg-gold/20 dark:text-gold",
-  };
 
   const priceCategoryColors: Record<string, string> = {
     "$": "bg-olive/10 text-olive dark:bg-olive/20 dark:text-olive",
@@ -187,7 +182,7 @@ function WineCard({
             className={`text-xs ${wineTypeColors[wine.wineType]}`}
             data-testid={`badge-wine-type-${wine.id}`}
           >
-            {wine.wineType}
+            {wineTypeLabel(wine.wineType)}
           </Badge>
           <Badge 
             variant="secondary" 
@@ -290,7 +285,7 @@ function FilterPanel({
             <SelectContent>
               <SelectItem value="all">All types</SelectItem>
               {wineTypes.map((type) => (
-                <SelectItem key={type} value={type}>{type}</SelectItem>
+                <SelectItem key={type} value={type}>{wineTypeLabel(type)}</SelectItem>
               ))}
             </SelectContent>
           </Select>
@@ -392,7 +387,7 @@ function WineFormDialog({
       description: wine.description || "",
     } : {
       name: "",
-      wineType: "Red",
+      wineType: "red",
       varietal: "",
       priceCents: 0,
       description: "",
@@ -444,7 +439,7 @@ function WineFormDialog({
                       </FormControl>
                       <SelectContent>
                         {wineTypes.map((type) => (
-                          <SelectItem key={type} value={type}>{type}</SelectItem>
+                          <SelectItem key={type} value={type}>{wineTypeLabel(type)}</SelectItem>
                         ))}
                       </SelectContent>
                     </Select>

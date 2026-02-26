@@ -3,6 +3,7 @@ import { type Food, type InsertFood, type FoodFilters, type FoodCategory } from 
 import { applyComputedFields } from "@shared/wineRules";
 import { inferWineProfile, buildWineDescription, getPriceTierFromPercentile, type WineProfile, type WineDescription } from "@shared/wineProfile";
 import { rankWinesForFood, rankFoodsForWine, inferDishProfile, type PairingResult, type FoodPairingResult, type DishProfile } from "@shared/pairingEngine";
+import { classifyWine, type WineTypeKey } from "@shared/wineTypes";
 import { randomUUID } from "crypto";
 import * as fs from "fs";
 import * as path from "path";
@@ -84,14 +85,24 @@ function parseCSVLine(line: string): string[] {
   return result;
 }
 
-function mapCategoryToWineType(category: string): "Red" | "White" | "Rosé" | "Sparkling" {
-  const normalized = category.trim();
-  if (normalized === "Red") return "Red";
-  if (normalized === "White") return "White";
-  if (normalized === "Rosé") return "Rosé";
-  if (normalized === "Sparkling") return "Sparkling";
-  if (normalized === "Amber") return "White";
-  return "Red";
+function classifyWineFromRecord(record: Record<string, string>): WineTypeKey {
+  const grapes = record.grape || record.varietal || "";
+  const region = record.origin || "";
+  const name = record.name || "";
+  const notes = record.notes || record.description || "";
+  const wineType = record.category || record.wineType || "";
+
+  const classification = classifyWine({
+    name,
+    varietal: grapes,
+    grapes,
+    region,
+    notes,
+    description: notes,
+    wineType,
+  });
+
+  return classification.typePrimary;
 }
 
 function loadWinesFromCSV(): Omit<InsertWine, "id">[] {
@@ -107,7 +118,7 @@ function loadWinesFromCSV(): Omit<InsertWine, "id">[] {
   
   return records.map(record => ({
     name: record.name || 'Unknown Wine',
-    wineType: mapCategoryToWineType(record.category),
+    wineType: classifyWineFromRecord(record),
     varietal: record.grape || 'Unknown',
     priceCents: Math.round(parseFloat(record.price || '0') * 100),
     description: record.origin 
@@ -138,7 +149,7 @@ function loadWinesByGlassFromCSV(): Omit<InsertWine, "id">[] {
   
   return records.map(record => ({
     name: record.name || 'Unknown Wine',
-    wineType: mapCategoryToWineType(record.wineType),
+    wineType: classifyWineFromRecord(record),
     varietal: record.varietal || 'Unknown',
     priceCents: parseInt(record.priceCents || '0', 10),
     description: record.origin 

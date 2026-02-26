@@ -10,6 +10,7 @@ import { Wine, Check, ChevronDown, ChevronRight, AlertTriangle } from "lucide-re
 import { tierColor, tierBarColor } from "@shared/calibrateMatch";
 import { apiRequest } from "@/lib/queryClient";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { wineTypeColors, wineTypeLabel } from "@/lib/wineTypeColors";
 import type { Food } from "@shared/foodSchema";
 
 interface PairingResult {
@@ -64,13 +65,6 @@ const categoryColors: Record<string, string> = {
   "Spreads": "bg-olive/10 text-olive dark:bg-olive/20",
   "Greens & Grains": "bg-olive/15 text-olive dark:bg-olive/25",
   "Meats & Seafood": "bg-terracotta/10 text-terracotta dark:bg-terracotta/20",
-};
-
-const wineTypeColors: Record<string, string> = {
-  Red: "bg-accent text-accent-foreground",
-  White: "bg-secondary text-secondary-foreground",
-  "Rosé": "bg-blush/40 text-terracotta dark:bg-blush dark:text-terracotta",
-  Sparkling: "bg-gold/10 text-gold dark:bg-gold/20 dark:text-gold",
 };
 
 const priceCategoryColors: Record<string, string> = {
@@ -190,7 +184,7 @@ function PairingCard({
           <p className="text-xs text-muted-foreground">{wine.varietal}</p>
           <div className="flex items-center gap-1.5 flex-wrap">
             <Badge className={`text-[10px] ${wineTypeColors[wine.wineType]}`}>
-              {wine.wineType}
+              {wineTypeLabel(wine.wineType)}
             </Badge>
             <span className="border border-gold/40 bg-gold/10 text-foreground px-2 py-0.5 rounded-full text-[10px] font-medium">
               {wine.priceCategory}

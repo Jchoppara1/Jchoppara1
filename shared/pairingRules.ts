@@ -105,35 +105,41 @@ export function getFoodPairingsForWine(wine: Wine, foods: Food[]): FoodPairingRe
   }
 
   switch (wine.wineType) {
-    case "Sparkling":
+    case "sparkling":
       foods.filter(f => sparklingDishes.includes(f.name))
         .forEach(f => addPairing(f, "Bubbles cut through richness"));
       foods.filter(f => f.category === "Mazzes" && !matchedFoods.has(f.id))
         .slice(0, 2).forEach(f => addPairing(f, "Effervescence lifts appetizers"));
       break;
 
-    case "White":
-      // Special: Sauvignon Blanc pairs well with herb dishes
+    case "white":
+    case "orange":
       if (isHerbaceousWhite(wine.varietal)) {
         foods.filter(f => herbDishes.includes(f.name))
           .forEach(f => addPairing(f, "Herbaceous notes echo Persian herbs"));
       }
-      // Dairy dishes pair with crisp whites
       foods.filter(f => dairyDishes.includes(f.name))
         .forEach(f => addPairing(f, "Crisp acidity balances creamy richness"));
-      // Seafood is natural match
       foods.filter(f => whiteDishes.includes(f.name))
         .forEach(f => addPairing(f, "Bright acidity complements delicate flavors"));
       break;
 
-    case "Rosé":
+    case "rose":
       foods.filter(f => roseDishes.includes(f.name))
         .forEach(f => addPairing(f, "Versatile bridge between delicate and bold"));
       foods.filter(f => f.category === "Greens & Grains" && !matchedFoods.has(f.id))
         .slice(0, 2).forEach(f => addPairing(f, "Fresh and food-friendly"));
       break;
 
-    case "Red":
+    case "fortified":
+    case "dessert":
+      foods.filter(f => f.category === "Spreads" && !matchedFoods.has(f.id))
+        .slice(0, 2).forEach(f => addPairing(f, "Sweet complexity matches rich spreads"));
+      foods.filter(f => f.category === "Mazzes" && !matchedFoods.has(f.id))
+        .slice(0, 2).forEach(f => addPairing(f, "Contrast of sweet and savory"));
+      break;
+
+    case "red":
       if (isLightMediumRed(wine.varietal)) {
         // Light-medium reds
         foods.filter(f => lightRedDishes.includes(f.name))
@@ -161,7 +167,7 @@ export function getFoodPairingsForWine(wine: Wine, foods: Food[]): FoodPairingRe
 
   // If we don't have enough pairings, add category-based suggestions
   if (results.length < 3) {
-    if (wine.wineType === "White" || wine.wineType === "Sparkling") {
+    if (wine.wineType === "white" || wine.wineType === "sparkling" || wine.wineType === "orange") {
       foods.filter(f => f.category === "Spreads" && !matchedFoods.has(f.id))
         .slice(0, 3 - results.length)
         .forEach(f => addPairing(f, "Classic pairing with mezze"));
@@ -204,7 +210,7 @@ export function getWinePairingsForFood(food: Food, wines: Wine[]): WinePairingRe
   if (isAmberFood) {
     wines.filter(w => w.name.toLowerCase().includes("bonny doon"))
       .forEach(w => addPairing(w, "Amber wine's texture matches earthy complexity"));
-    wines.filter(w => w.wineType === "White" && w.varietal.toLowerCase().includes("chardonnay"))
+    wines.filter(w => w.wineType === "white" && w.varietal.toLowerCase().includes("chardonnay"))
       .slice(0, 2).forEach(w => addPairing(w, "Rich white complements roasted vegetables"));
   }
 
@@ -214,9 +220,9 @@ export function getWinePairingsForFood(food: Food, wines: Wine[]): WinePairingRe
   }
 
   if (isDairy) {
-    wines.filter(w => w.wineType === "Sparkling")
+    wines.filter(w => w.wineType === "sparkling")
       .slice(0, 2).forEach(w => addPairing(w, "Bubbles cut through creamy richness"));
-    wines.filter(w => w.wineType === "White")
+    wines.filter(w => w.wineType === "white")
       .slice(0, 2).forEach(w => addPairing(w, "Crisp acidity balances dairy"));
   }
 
@@ -231,23 +237,23 @@ export function getWinePairingsForFood(food: Food, wines: Wine[]): WinePairingRe
   // Category-based pairings
   switch (food.category) {
     case "Mazzes":
-      wines.filter(w => w.wineType === "Sparkling")
+      wines.filter(w => w.wineType === "sparkling")
         .slice(0, 2).forEach(w => addPairing(w, "Effervescence lifts appetizers"));
-      wines.filter(w => w.wineType === "Rosé")
+      wines.filter(w => w.wineType === "rose")
         .slice(0, 2).forEach(w => addPairing(w, "Versatile and refreshing"));
       break;
 
     case "Spreads":
-      wines.filter(w => w.wineType === "White")
+      wines.filter(w => w.wineType === "white")
         .slice(0, 2).forEach(w => addPairing(w, "Bright acidity complements creamy spreads"));
-      wines.filter(w => w.wineType === "Sparkling")
+      wines.filter(w => w.wineType === "sparkling")
         .slice(0, 2).forEach(w => addPairing(w, "Bubbles cleanse the palate"));
       break;
 
     case "Greens & Grains":
-      wines.filter(w => w.wineType === "White")
+      wines.filter(w => w.wineType === "white")
         .slice(0, 2).forEach(w => addPairing(w, "Fresh and complementary"));
-      wines.filter(w => w.wineType === "Rosé")
+      wines.filter(w => w.wineType === "rose")
         .slice(0, 2).forEach(w => addPairing(w, "Light body matches grain dishes"));
       break;
 
@@ -264,21 +270,20 @@ export function getWinePairingsForFood(food: Food, wines: Wine[]): WinePairingRe
                      food.name.toLowerCase().includes("koobideh");
 
       if (isSeafood) {
-        wines.filter(w => w.wineType === "White")
+        wines.filter(w => w.wineType === "white")
           .slice(0, 3).forEach(w => addPairing(w, "Bright acidity complements seafood"));
       } else if (isChicken) {
-        wines.filter(w => w.wineType === "White" || w.wineType === "Rosé")
+        wines.filter(w => w.wineType === "white" || w.wineType === "rose")
           .slice(0, 2).forEach(w => addPairing(w, "Light wine for lighter protein"));
-        wines.filter(w => w.wineType === "Red" && isLightMediumRed(w.varietal))
+        wines.filter(w => w.wineType === "red" && isLightMediumRed(w.varietal))
           .slice(0, 2).forEach(w => addPairing(w, "Soft tannins complement poultry"));
       } else if (isLamb || isBeef || isGrilled) {
-        wines.filter(w => w.wineType === "Red" && isBoldRed(w.varietal))
+        wines.filter(w => w.wineType === "red" && isBoldRed(w.varietal))
           .slice(0, 3).forEach(w => addPairing(w, "Bold tannins match rich meats"));
-        wines.filter(w => w.wineType === "Red" && !isBoldRed(w.varietal))
+        wines.filter(w => w.wineType === "red" && !isBoldRed(w.varietal))
           .slice(0, 2).forEach(w => addPairing(w, "Balanced structure for grilled dishes"));
       } else {
-        // General meat dish
-        wines.filter(w => w.wineType === "Red")
+        wines.filter(w => w.wineType === "red")
           .slice(0, 3).forEach(w => addPairing(w, "Red wine complements savory proteins"));
       }
       break;

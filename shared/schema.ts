@@ -1,9 +1,10 @@
 import { pgTable, text, varchar, integer, boolean, timestamp } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
+import { WINE_TYPE_KEYS, type WineTypeKey } from "./wineTypes";
 
-export const wineTypes = ["Red", "White", "Rosé", "Sparkling"] as const;
-export type WineType = typeof wineTypes[number];
+export const wineTypes = WINE_TYPE_KEYS;
+export type WineType = WineTypeKey;
 
 export const priceCategories = ["$", "$$", "$$$", "$$$$"] as const;
 export type PriceCategory = typeof priceCategories[number];
