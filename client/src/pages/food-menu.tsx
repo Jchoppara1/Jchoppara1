@@ -343,14 +343,36 @@ function PairingWineCard({
   );
 }
 
+interface DishFiltersState {
+  search: string;
+  traits: Set<DishFilter>;
+}
+
+function dishFiltersEqual(a: DishFiltersState, b: DishFiltersState): boolean {
+  if (a.search !== b.search) return false;
+  if (a.traits.size !== b.traits.size) return false;
+  for (const t of a.traits) {
+    if (!b.traits.has(t)) return false;
+  }
+  return true;
+}
+
+const defaultDishFilters = (): DishFiltersState => ({ search: "", traits: new Set() });
+
 function DishFiltersBar({
-  activeFilters,
+  draftFilters,
+  appliedFilters,
   onToggle,
-  onClear,
+  onSearchChange,
+  onApply,
+  onReset,
 }: {
-  activeFilters: Set<DishFilter>;
+  draftFilters: DishFiltersState;
+  appliedFilters: DishFiltersState;
   onToggle: (f: DishFilter) => void;
-  onClear: () => void;
+  onSearchChange: (s: string) => void;
+  onApply: () => void;
+  onReset: () => void;
 }) {
   const filters: { key: DishFilter; label: string; icon: typeof Leaf }[] = [
     { key: "vegetarian", label: "Vegetarian", icon: Leaf },
@@ -359,30 +381,83 @@ function DishFiltersBar({
     { key: "red_meat", label: "Red Meat", icon: Beef },
   ];
 
+  const hasUnsavedChanges = !dishFiltersEqual(draftFilters, appliedFilters);
+  const hasDraftValues = draftFilters.search.trim() !== "" || draftFilters.traits.size > 0;
+  const hasAppliedValues = appliedFilters.search.trim() !== "" || appliedFilters.traits.size > 0;
+
   return (
-    <div className="flex items-center gap-1.5 flex-wrap">
-      {filters.map(({ key, label, icon: Icon }) => (
-        <Button
-          key={key}
-          variant={activeFilters.has(key) ? "default" : "outline"}
-          size="sm"
-          className={`gap-1 text-xs toggle-elevate ${activeFilters.has(key) ? "toggle-elevated" : ""}`}
-          onClick={() => onToggle(key)}
-          data-testid={`filter-${key}`}
-        >
-          <Icon className="h-3 w-3" />
-          {label}
-        </Button>
-      ))}
-      {activeFilters.size > 0 && (
-        <Button variant="ghost" size="sm" onClick={onClear} className="text-xs gap-1" data-testid="button-clear-dish-filters">
-          <X className="h-3 w-3" />
-          Clear
-        </Button>
+    <div className="space-y-2">
+      <div className="relative">
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+        <Input
+          type="search"
+          placeholder="Search dishes..."
+          value={draftFilters.search}
+          onChange={(e) => onSearchChange(e.target.value)}
+          className="pl-9"
+          data-testid="input-dish-search"
+        />
+      </div>
+
+      <div className="flex items-center gap-1.5 flex-wrap">
+        {filters.map(({ key, label, icon: Icon }) => (
+          <Button
+            key={key}
+            variant={draftFilters.traits.has(key) ? "default" : "outline"}
+            size="sm"
+            className={`gap-1 text-xs toggle-elevate ${draftFilters.traits.has(key) ? "toggle-elevated" : ""}`}
+            onClick={() => onToggle(key)}
+            data-testid={`filter-${key}`}
+          >
+            <Icon className="h-3 w-3" />
+            {label}
+          </Button>
+        ))}
+      </div>
+
+      {hasUnsavedChanges && (
+        <div className="flex items-center gap-1.5 text-xs text-amber-600 dark:text-amber-400" data-testid="text-dish-unsaved-changes">
+          <div className="h-1.5 w-1.5 rounded-full bg-amber-500 animate-pulse" />
+          Unsaved changes
+        </div>
       )}
+
+      <div className="flex gap-2">
+        <Button
+          size="sm"
+          onClick={onApply}
+          disabled={!hasUnsavedChanges}
+          className="flex-1"
+          data-testid="button-apply-dish-filters"
+        >
+          Apply Filters
+        </Button>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={onReset}
+          disabled={!hasDraftValues && !hasAppliedValues}
+          className="flex-1"
+          data-testid="button-reset-dish-filters"
+        >
+          <X className="h-3 w-3 mr-1" />
+          Reset
+        </Button>
+      </div>
     </div>
   );
 }
+
+interface WinePairingFiltersState {
+  search: string;
+  colorFilter: WineColorFilter | null;
+}
+
+function winePairingFiltersEqual(a: WinePairingFiltersState, b: WinePairingFiltersState): boolean {
+  return a.search === b.search && a.colorFilter === b.colorFilter;
+}
+
+const defaultWinePairingFilters = (): WinePairingFiltersState => ({ search: "", colorFilter: null });
 
 function WineColorFilterBar({
   activeColor,
@@ -413,16 +488,20 @@ function WineColorFilterBar({
 
 function PairingDetailPane({
   food,
-  wineSearch,
-  onWineSearchChange,
-  wineColorFilter,
-  onWineColorChange,
+  draftWineFilters,
+  appliedWineFilters,
+  onDraftSearchChange,
+  onDraftColorChange,
+  onApply,
+  onReset,
 }: {
   food: Food;
-  wineSearch: string;
-  onWineSearchChange: (s: string) => void;
-  wineColorFilter: WineColorFilter | null;
-  onWineColorChange: (c: WineColorFilter | null) => void;
+  draftWineFilters: WinePairingFiltersState;
+  appliedWineFilters: WinePairingFiltersState;
+  onDraftSearchChange: (s: string) => void;
+  onDraftColorChange: (c: WineColorFilter | null) => void;
+  onApply: () => void;
+  onReset: () => void;
 }) {
   const { data: bottlePairings, isLoading: bottleLoading } = useQuery<PairingResult[]>({
     queryKey: ["/api/foods", food.id, "pairings", "bottle", "classic"],
@@ -462,20 +541,24 @@ function PairingDetailPane({
   const filteredPairings = useMemo(() => {
     let results = allPairings;
 
-    if (wineSearch.trim()) {
-      const q = wineSearch.toLowerCase();
+    if (appliedWineFilters.search.trim()) {
+      const q = appliedWineFilters.search.toLowerCase();
       results = results.filter(p =>
         p.wine.name.toLowerCase().includes(q) ||
         p.wine.varietal.toLowerCase().includes(q)
       );
     }
 
-    if (wineColorFilter) {
-      results = results.filter(p => p.wine.wineType === wineColorFilter);
+    if (appliedWineFilters.colorFilter) {
+      results = results.filter(p => p.wine.wineType === appliedWineFilters.colorFilter);
     }
 
     return results.slice(0, 3);
-  }, [allPairings, wineSearch, wineColorFilter]);
+  }, [allPairings, appliedWineFilters]);
+
+  const hasUnsavedChanges = !winePairingFiltersEqual(draftWineFilters, appliedWineFilters);
+  const hasDraftValues = draftWineFilters.search.trim() !== "" || draftWineFilters.colorFilter !== null;
+  const hasAppliedValues = appliedWineFilters.search.trim() !== "" || appliedWineFilters.colorFilter !== null;
 
   const traits = inferDishTraits(food);
   const priceDisplay = `$${(food.priceCents / 100).toFixed(0)}`;
@@ -527,14 +610,44 @@ function PairingDetailPane({
           <Input
             type="search"
             placeholder="Search wines..."
-            value={wineSearch}
-            onChange={(e) => onWineSearchChange(e.target.value)}
+            value={draftWineFilters.search}
+            onChange={(e) => onDraftSearchChange(e.target.value)}
             className="pl-9"
             data-testid="input-wine-search"
           />
         </div>
 
-        <WineColorFilterBar activeColor={wineColorFilter} onChange={onWineColorChange} />
+        <WineColorFilterBar activeColor={draftWineFilters.colorFilter} onChange={onDraftColorChange} />
+
+        {hasUnsavedChanges && (
+          <div className="flex items-center gap-1.5 text-xs text-amber-600 dark:text-amber-400" data-testid="text-wine-unsaved-changes">
+            <div className="h-1.5 w-1.5 rounded-full bg-amber-500 animate-pulse" />
+            Unsaved changes
+          </div>
+        )}
+
+        <div className="flex gap-2">
+          <Button
+            size="sm"
+            onClick={onApply}
+            disabled={!hasUnsavedChanges}
+            className="flex-1"
+            data-testid="button-apply-wine-filters"
+          >
+            Apply Filters
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={onReset}
+            disabled={!hasDraftValues && !hasAppliedValues}
+            className="flex-1"
+            data-testid="button-reset-wine-filters"
+          >
+            <X className="h-3 w-3 mr-1" />
+            Reset
+          </Button>
+        </div>
 
         {isLoading ? (
           <div className="space-y-3">
@@ -555,7 +668,7 @@ function PairingDetailPane({
         ) : (
           <div className="text-center py-8 text-muted-foreground">
             <p className="text-sm">No matching wine pairings found.</p>
-            {(wineSearch || wineColorFilter) && (
+            {(appliedWineFilters.search || appliedWineFilters.colorFilter) && (
               <p className="text-xs mt-1">Try adjusting your search or filters.</p>
             )}
           </div>
@@ -566,11 +679,11 @@ function PairingDetailPane({
 }
 
 export default function FoodMenu() {
-  const [dishSearch, setDishSearch] = useState("");
-  const [dishFilters, setDishFilters] = useState<Set<DishFilter>>(new Set());
+  const [draftDishFilters, setDraftDishFilters] = useState<DishFiltersState>(defaultDishFilters);
+  const [appliedDishFilters, setAppliedDishFilters] = useState<DishFiltersState>(defaultDishFilters);
   const [selectedFood, setSelectedFood] = useState<Food | null>(null);
-  const [wineSearch, setWineSearch] = useState("");
-  const [wineColorFilter, setWineColorFilter] = useState<WineColorFilter | null>(null);
+  const [draftWineFilters, setDraftWineFilters] = useState<WinePairingFiltersState>(defaultWinePairingFilters);
+  const [appliedWineFilters, setAppliedWineFilters] = useState<WinePairingFiltersState>(defaultWinePairingFilters);
 
   const isMobile = useIsMobile();
 
@@ -579,37 +692,55 @@ export default function FoodMenu() {
   });
 
   const toggleDishFilter = useCallback((f: DishFilter) => {
-    setDishFilters((prev) => {
-      const next = new Set(prev);
+    setDraftDishFilters((prev) => {
+      const next = new Set(prev.traits);
       if (next.has(f)) next.delete(f);
       else next.add(f);
-      return next;
+      return { ...prev, traits: next };
     });
+  }, []);
+
+  const handleApplyDishFilters = useCallback(() => {
+    setAppliedDishFilters({ search: draftDishFilters.search, traits: new Set(draftDishFilters.traits) });
+  }, [draftDishFilters]);
+
+  const handleResetDishFilters = useCallback(() => {
+    setDraftDishFilters(defaultDishFilters());
+    setAppliedDishFilters(defaultDishFilters());
+  }, []);
+
+  const handleApplyWineFilters = useCallback(() => {
+    setAppliedWineFilters({ ...draftWineFilters });
+  }, [draftWineFilters]);
+
+  const handleResetWineFilters = useCallback(() => {
+    setDraftWineFilters(defaultWinePairingFilters());
+    setAppliedWineFilters(defaultWinePairingFilters());
   }, []);
 
   const filteredFoods = useMemo(() => {
     if (!foods) return [];
 
     return foods.filter((food) => {
-      if (dishSearch.trim()) {
-        const q = dishSearch.toLowerCase();
+      if (appliedDishFilters.search.trim()) {
+        const q = appliedDishFilters.search.toLowerCase();
         if (!food.name.toLowerCase().includes(q) &&
             !(food.description || "").toLowerCase().includes(q)) {
           return false;
         }
       }
 
-      if (dishFilters.size > 0) {
+      if (appliedDishFilters.traits.size > 0) {
         const traits = inferDishTraits(food);
-        if (dishFilters.has("vegetarian") && !traits.isVegetarian) return false;
-        if (dishFilters.has("spicy") && !traits.isSpicy) return false;
-        if (dishFilters.has("seafood") && !traits.isSeafood) return false;
-        if (dishFilters.has("red_meat") && !traits.isRedMeat) return false;
+        if (appliedDishFilters.traits.has("vegetarian") && !traits.isVegetarian) return false;
+        if (appliedDishFilters.traits.has("spicy") && !traits.isSpicy) return false;
+        if (appliedDishFilters.traits.has("seafood") && !traits.isSeafood) return false;
+        if (appliedDishFilters.traits.has("red_meat") && !traits.isRedMeat) return false;
       }
 
       return true;
     });
-  }, [foods, dishSearch, dishFilters]);
+  }, [foods, appliedDishFilters]);
 
   const groupedFoods = useMemo(() => {
     return foodCategories.reduce((acc, cat) => {
@@ -620,8 +751,8 @@ export default function FoodMenu() {
 
   const handleSelectFood = useCallback((food: Food) => {
     setSelectedFood(food);
-    setWineSearch("");
-    setWineColorFilter(null);
+    setDraftWineFilters(defaultWinePairingFilters());
+    setAppliedWineFilters(defaultWinePairingFilters());
   }, []);
 
   return (
@@ -636,22 +767,13 @@ export default function FoodMenu() {
 
       <div className={`flex gap-6 ${isMobile ? "flex-col" : "flex-row"}`}>
         <div className={`${isMobile ? "w-full" : "w-[380px]"} shrink-0 space-y-3`}>
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input
-              type="search"
-              placeholder="Search dishes..."
-              value={dishSearch}
-              onChange={(e) => setDishSearch(e.target.value)}
-              className="pl-9"
-              data-testid="input-dish-search"
-            />
-          </div>
-
           <DishFiltersBar
-            activeFilters={dishFilters}
+            draftFilters={draftDishFilters}
+            appliedFilters={appliedDishFilters}
             onToggle={toggleDishFilter}
-            onClear={() => setDishFilters(new Set())}
+            onSearchChange={(s) => setDraftDishFilters((prev) => ({ ...prev, search: s }))}
+            onApply={handleApplyDishFilters}
+            onReset={handleResetDishFilters}
           />
 
           {isLoading ? (
@@ -704,10 +826,12 @@ export default function FoodMenu() {
                 <CardContent className="p-5">
                   <PairingDetailPane
                     food={selectedFood}
-                    wineSearch={wineSearch}
-                    onWineSearchChange={setWineSearch}
-                    wineColorFilter={wineColorFilter}
-                    onWineColorChange={setWineColorFilter}
+                    draftWineFilters={draftWineFilters}
+                    appliedWineFilters={appliedWineFilters}
+                    onDraftSearchChange={(s) => setDraftWineFilters((prev) => ({ ...prev, search: s }))}
+                    onDraftColorChange={(c) => setDraftWineFilters((prev) => ({ ...prev, colorFilter: c }))}
+                    onApply={handleApplyWineFilters}
+                    onReset={handleResetWineFilters}
                   />
                 </CardContent>
               </Card>

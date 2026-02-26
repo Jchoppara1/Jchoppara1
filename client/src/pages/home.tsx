@@ -229,26 +229,45 @@ function WineCard({
   );
 }
 
+function filtersEqual(a: WineFilters, b: WineFilters): boolean {
+  return (a.search || "") === (b.search || "") &&
+    (a.wineType || "") === (b.wineType || "") &&
+    (a.priceCategory || "") === (b.priceCategory || "") &&
+    (a.foodPairing || "") === (b.foodPairing || "");
+}
+
 function FilterPanel({
-  filters,
-  onFiltersChange,
-  onClear,
+  draftFilters,
+  appliedFilters,
+  onDraftChange,
+  onApply,
+  onReset,
 }: {
-  filters: WineFilters;
-  onFiltersChange: (filters: WineFilters) => void;
-  onClear: () => void;
+  draftFilters: WineFilters;
+  appliedFilters: WineFilters;
+  onDraftChange: (filters: WineFilters) => void;
+  onApply: () => void;
+  onReset: () => void;
 }) {
-  const hasActiveFilters = filters.search || filters.wineType || filters.priceCategory || filters.foodPairing;
+  const hasUnsavedChanges = !filtersEqual(draftFilters, appliedFilters);
+  const hasDraftValues = draftFilters.search || draftFilters.wineType || draftFilters.priceCategory || draftFilters.foodPairing;
 
   return (
     <div className="space-y-4">
+      {hasUnsavedChanges && (
+        <div className="flex items-center gap-1.5 text-xs text-amber-600 dark:text-amber-400" data-testid="text-unsaved-changes">
+          <div className="h-1.5 w-1.5 rounded-full bg-amber-500 animate-pulse" />
+          Unsaved changes
+        </div>
+      )}
+
       <div className="relative">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
         <Input
           type="search"
           placeholder="Search wines..."
-          value={filters.search || ""}
-          onChange={(e) => onFiltersChange({ ...filters, search: e.target.value || undefined })}
+          value={draftFilters.search || ""}
+          onChange={(e) => onDraftChange({ ...draftFilters, search: e.target.value || undefined })}
           className="pl-9"
           data-testid="input-search"
         />
@@ -260,9 +279,9 @@ function FilterPanel({
             Wine Type
           </Label>
           <Select
-            value={filters.wineType || "all"}
+            value={draftFilters.wineType || "all"}
             onValueChange={(value) => 
-              onFiltersChange({ ...filters, wineType: value === "all" ? undefined : value as any })
+              onDraftChange({ ...draftFilters, wineType: value === "all" ? undefined : value as any })
             }
           >
             <SelectTrigger data-testid="select-wine-type">
@@ -282,9 +301,9 @@ function FilterPanel({
             Price Range
           </Label>
           <Select
-            value={filters.priceCategory || "all"}
+            value={draftFilters.priceCategory || "all"}
             onValueChange={(value) => 
-              onFiltersChange({ ...filters, priceCategory: value === "all" ? undefined : value as any })
+              onDraftChange({ ...draftFilters, priceCategory: value === "all" ? undefined : value as any })
             }
           >
             <SelectTrigger data-testid="select-price-category">
@@ -306,9 +325,9 @@ function FilterPanel({
             Food Pairing
           </Label>
           <Select
-            value={filters.foodPairing || "all"}
+            value={draftFilters.foodPairing || "all"}
             onValueChange={(value) => 
-              onFiltersChange({ ...filters, foodPairing: value === "all" ? undefined : value as any })
+              onDraftChange({ ...draftFilters, foodPairing: value === "all" ? undefined : value as any })
             }
           >
             <SelectTrigger data-testid="select-food-pairing">
@@ -324,18 +343,28 @@ function FilterPanel({
         </div>
       </div>
 
-      {hasActiveFilters && (
-        <Button 
-          variant="ghost" 
-          size="sm" 
-          onClick={onClear}
-          className="w-full"
-          data-testid="button-clear-filters"
+      <div className="flex gap-2 pt-1">
+        <Button
+          size="sm"
+          onClick={onApply}
+          disabled={!hasUnsavedChanges}
+          className="flex-1"
+          data-testid="button-apply-filters"
         >
-          <X className="h-4 w-4 mr-2" />
-          Clear Filters
+          Apply Filters
         </Button>
-      )}
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={onReset}
+          disabled={!hasDraftValues && !appliedFilters.search && !appliedFilters.wineType && !appliedFilters.priceCategory && !appliedFilters.foodPairing}
+          className="flex-1"
+          data-testid="button-reset-filters"
+        >
+          <X className="h-4 w-4 mr-1" />
+          Reset
+        </Button>
+      </div>
     </div>
   );
 }
@@ -532,7 +561,8 @@ type WineViewMode = "bottle" | "glass";
 
 export default function Home() {
   const { toast } = useToast();
-  const [filters, setFilters] = useState<WineFilters>({});
+  const [draftFilters, setDraftFilters] = useState<WineFilters>({});
+  const [appliedFilters, setAppliedFilters] = useState<WineFilters>({});
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingWine, setEditingWine] = useState<EnrichedWine | null>(null);
   const [selectedWine, setSelectedWine] = useState<EnrichedWine | null>(null);
@@ -587,8 +617,8 @@ export default function Home() {
     if (!wines) return [];
     
     return wines.filter((wine) => {
-      if (filters.search) {
-        const search = filters.search.toLowerCase();
+      if (appliedFilters.search) {
+        const search = appliedFilters.search.toLowerCase();
         if (
           !wine.name.toLowerCase().includes(search) &&
           !wine.varietal.toLowerCase().includes(search) &&
@@ -598,21 +628,21 @@ export default function Home() {
         }
       }
       
-      if (filters.wineType && wine.wineType !== filters.wineType) {
+      if (appliedFilters.wineType && wine.wineType !== appliedFilters.wineType) {
         return false;
       }
       
-      if (filters.priceCategory && wine.priceCategory !== filters.priceCategory) {
+      if (appliedFilters.priceCategory && wine.priceCategory !== appliedFilters.priceCategory) {
         return false;
       }
       
-      if (filters.foodPairing && !wine.foodPairings.includes(filters.foodPairing)) {
+      if (appliedFilters.foodPairing && !wine.foodPairings.includes(appliedFilters.foodPairing)) {
         return false;
       }
       
       return true;
     });
-  }, [wines, filters]);
+  }, [wines, appliedFilters]);
 
   const createMutation = useMutation({
     mutationFn: async (data: FormValues) => {
@@ -663,12 +693,18 @@ export default function Home() {
     deleteMutation.mutate(id);
   };
 
-  const handleClearFilters = () => {
-    setFilters({});
+  const handleApplyFilters = () => {
+    setAppliedFilters({ ...draftFilters });
   };
 
-  const hasActiveFilters = filters.search || filters.wineType || filters.priceCategory || filters.foodPairing;
-  const activeFilterCount = [filters.wineType, filters.priceCategory, filters.foodPairing].filter(Boolean).length;
+  const handleResetFilters = () => {
+    setDraftFilters({});
+    setAppliedFilters({});
+  };
+
+  const hasActiveFilters = appliedFilters.search || appliedFilters.wineType || appliedFilters.priceCategory || appliedFilters.foodPairing;
+  const activeFilterCount = [appliedFilters.wineType, appliedFilters.priceCategory, appliedFilters.foodPairing].filter(Boolean).length;
+  const hasUnsavedFilterChanges = !filtersEqual(draftFilters, appliedFilters);
 
   return (
     <div className="min-h-screen bg-background">
@@ -710,9 +746,9 @@ export default function Home() {
             >
               <Filter className="h-4 w-4 mr-2" />
               Filters
-              {activeFilterCount > 0 && (
-                <Badge variant="secondary" className="ml-2 h-5 w-5 p-0 justify-center">
-                  {activeFilterCount}
+              {(activeFilterCount > 0 || hasUnsavedFilterChanges) && (
+                <Badge variant={hasUnsavedFilterChanges ? "default" : "secondary"} className="ml-2 h-5 w-5 p-0 justify-center">
+                  {hasUnsavedFilterChanges ? "!" : activeFilterCount}
                 </Badge>
               )}
             </Button>
@@ -741,9 +777,11 @@ export default function Home() {
                 Filters
               </h2>
               <FilterPanel
-                filters={filters}
-                onFiltersChange={setFilters}
-                onClear={handleClearFilters}
+                draftFilters={draftFilters}
+                appliedFilters={appliedFilters}
+                onDraftChange={setDraftFilters}
+                onApply={handleApplyFilters}
+                onReset={handleResetFilters}
               />
             </div>
           </aside>

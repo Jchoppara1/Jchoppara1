@@ -76,6 +76,13 @@ shared/           # Shared code between client and server
   pairingRules.ts # Legacy bidirectional wine/food pairing logic
 ```
 
+### Filter UX Pattern
+- **Deferred Apply**: All filter UIs use a draft/applied two-state pattern
+- Filter inputs update `draftFilters` only; results update only when "Apply Filters" is clicked
+- "Unsaved changes" indicator appears when draft differs from applied
+- "Apply Filters" button disabled when no changes; "Reset" clears both states
+- Implemented on: Wine List (home.tsx), Food Menu dish filters & wine pairing filters (food-menu.tsx)
+
 ### Routes
 - `/` - Wine List with food pairings on cards
 - `/food` - Food Menu with category filtering
