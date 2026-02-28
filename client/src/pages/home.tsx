@@ -613,7 +613,7 @@ const VARIETAL_FILTER_MAP: Record<string, string> = {
   pinotNoir: "pinot noir",
   chardonnay: "chardonnay",
   sauvignonBlanc: "sauvignon blanc",
-  syrah: "syrah",
+  syrah: "syrah|shiraz",
   riesling: "riesling",
 };
 
