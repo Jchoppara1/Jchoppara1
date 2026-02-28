@@ -605,6 +605,18 @@ function WineDebugPanel({ wines }: { wines: EnrichedWine[] }) {
 
 type WineViewMode = "bottle" | "glass";
 
+// Maps varietal filter keys to search terms used against wine data fields
+const VARIETAL_FILTER_MAP: Record<string, string> = {
+  malbec: "malbec",
+  cabernetSauvignon: "cabernet sauvignon",
+  pinotGrigio: "pinot grigio",
+  pinotNoir: "pinot noir",
+  chardonnay: "chardonnay",
+  sauvignonBlanc: "sauvignon blanc",
+  syrah: "syrah",
+  riesling: "riesling",
+};
+
 export default function Home() {
   const { toast } = useToast();
   const [draftFilters, setDraftFilters] = useState<WineFilters>({});
@@ -661,7 +673,7 @@ export default function Home() {
 
   const filteredWines = useMemo(() => {
     if (!wines) return [];
-    
+
     return wines.filter((wine) => {
       if (appliedFilters.search) {
         const search = appliedFilters.search.toLowerCase();
@@ -673,25 +685,37 @@ export default function Home() {
           return false;
         }
       }
-      
+
       if (appliedFilters.wineType) {
-        const cls = (wine as any).classification;
-        const matchesPrimary = cls?.typePrimary === appliedFilters.wineType;
-        const matchesSecondary = cls?.typeSecondary?.includes(appliedFilters.wineType);
-        const matchesFallback = wine.wineType === appliedFilters.wineType;
-        if (!matchesPrimary && !matchesSecondary && !matchesFallback) {
-          return false;
+        const varietalSearchTerm = VARIETAL_FILTER_MAP[appliedFilters.wineType];
+
+        if (varietalSearchTerm) {
+          const searchTerms = varietalSearchTerm.split("|");
+          const matchesVarietal = searchTerms.some(term =>
+            wine.varietal?.toLowerCase().includes(term) ||
+            wine.name?.toLowerCase().includes(term) ||
+            wine.description?.toLowerCase().includes(term)
+          );
+          if (!matchesVarietal) return false;
+        } else {
+          const cls = (wine as any).classification;
+          const matchesPrimary = cls?.typePrimary === appliedFilters.wineType;
+          const matchesSecondary = cls?.typeSecondary?.includes(appliedFilters.wineType);
+          const matchesFallback = wine.wineType === appliedFilters.wineType;
+          if (!matchesPrimary && !matchesSecondary && !matchesFallback) {
+            return false;
+          }
         }
       }
-      
+
       if (appliedFilters.priceCategory && wine.priceCategory !== appliedFilters.priceCategory) {
         return false;
       }
-      
+
       if (appliedFilters.foodPairing && !wine.foodPairings.includes(appliedFilters.foodPairing)) {
         return false;
       }
-      
+
       return true;
     });
   }, [wines, appliedFilters]);

@@ -7,11 +7,22 @@ export const WINE_TYPES = [
   { key: "fortified", label: "Fortified" },
   { key: "dessert", label: "Dessert / Sweet" },
   { key: "nonAlcoholic", label: "Non-alcoholic" },
+  { key: "malbec", label: "Malbec" },
+  { key: "cabernetSauvignon", label: "Cabernet Sauvignon" },
+  { key: "pinotGrigio", label: "Pinot Grigio" },
+  { key: "pinotNoir", label: "Pinot Noir" },
+  { key: "chardonnay", label: "Chardonnay" },
+  { key: "sauvignonBlanc", label: "Sauvignon Blanc" },
+  { key: "syrah", label: "Syrah / Shiraz" },
+  { key: "riesling", label: "Riesling" },
 ] as const;
 
 export type WineTypeKey = typeof WINE_TYPES[number]["key"];
 
-export const WINE_TYPE_KEYS = ["red", "white", "rose", "sparkling", "orange", "fortified", "dessert", "nonAlcoholic"] as const satisfies readonly WineTypeKey[];
+export const WINE_TYPE_KEYS = [
+  "red", "white", "rose", "sparkling", "orange", "fortified", "dessert", "nonAlcoholic",
+  "malbec", "cabernetSauvignon", "pinotGrigio", "pinotNoir", "chardonnay", "sauvignonBlanc", "syrah", "riesling"
+] as const satisfies readonly WineTypeKey[];
 
 export const WINE_TYPE_LABELS: Record<WineTypeKey, string> = Object.fromEntries(
   WINE_TYPES.map(t => [t.key, t.label])
