@@ -1,0 +1,38 @@
+uploads = []
+generated = []
+
+[[outputs]]
+id = "qwkUT1xZymqVOhdnbrYpE"
+uri = "file://screenshots/01-wine-list.jpg"
+type = "image"
+title = "Splash Screen — Food Photo 1"
+
+[[outputs]]
+id = "Yxf37msk2vVPWJPC1AGhT"
+uri = "file://screenshots/03-food-menu.jpg"
+type = "image"
+title = "Splash Screen — Food Photo 2 (crossfade)"
+
+[[outputs]]
+id = "VFLkXvUrD_cKLwEw8B5ui"
+uri = "file://screenshots/02-wine-list.jpg"
+type = "image"
+title = "Wine List — Main Page"
+
+[[outputs]]
+id = "pYxiP45MsZo1YucvXnSl4"
+uri = "file://screenshots/04-food-menu.jpg"
+type = "image"
+title = "Food & Wine Pairings Page"
+
+[[outputs]]
+id = "GohQdRLNj9_NNCwFd2eEi"
+uri = "file://screenshots/05-admin-login.jpg"
+type = "image"
+title = "Admin Login"
+
+[[outputs]]
+id = "5pjQG4DCB_mxOQzilrHEM"
+uri = "file://screenshots/06-investor-deck.jpg"
+type = "image"
+title = "Investor Deck — /deck"

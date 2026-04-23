@@ -69,7 +69,8 @@ function App() {
   const hideNav = location === "/deck";
 
   const alreadySeen = typeof sessionStorage !== "undefined" && sessionStorage.getItem("hasSeenSplash") === "1";
-  const [showSplash, setShowSplash] = useState(!alreadySeen && location !== "/deck" && location !== "/admin");
+  const skipSplash = typeof window !== "undefined" && new URLSearchParams(window.location.search).has("nosplash");
+  const [showSplash, setShowSplash] = useState(!alreadySeen && !skipSplash && location !== "/deck" && location !== "/admin");
 
   const handleSplashDone = useCallback(() => {
     setShowSplash(false);
