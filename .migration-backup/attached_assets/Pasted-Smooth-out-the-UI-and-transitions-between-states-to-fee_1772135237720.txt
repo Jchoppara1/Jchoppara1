@@ -1,0 +1,120 @@
+Smooth out the UI and transitions between states to feel classy, clean, and premium (Tailwind + shadcn). Do NOT redesign the layout or change the theme tokens; only refine motion, spacing consistency, hover/focus, and state transitions.
+
+GOALS
+- Transitions feel intentional, subtle, and consistent (no jank).
+- Detail navigation (Wine <-> Dish) feels seamless.
+- Cards, modals, lists, and filters feel “polished restaurant demo” ready.
+- No new heavy UI libraries. Prefer Tailwind + existing shadcn components.
+- Keep performance strong (avoid expensive re-renders and layout thrash).
+
+------------------------------------------------------------
+1) GLOBAL MOTION RULES (CONSISTENT ACROSS APP)
+------------------------------------------------------------
+Create shared Tailwind utility classes (or constants) for transitions:
+
+- Standard duration: 200–250ms
+- Easing: ease-out for entering, ease-in for leaving
+- Use transform + opacity (avoid animating height unless necessary)
+
+Add reusable classes:
+- .ui-fade-in: opacity-0 -> opacity-100
+- .ui-scale-in: scale-[0.98] -> scale-100
+- .ui-lift-hover: hover:-translate-y-[1px] hover:shadow-lift
+- .ui-focus: focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2
+- .ui-transition: transition-all duration-200 ease-out
+
+Respect reduced motion:
+- If prefers-reduced-motion, disable transforms and shorten duration.
+
+------------------------------------------------------------
+2) PAGE / STATE TRANSITIONS (LIST <-> DETAIL)
+------------------------------------------------------------
+Where the main content changes (wine list results -> wine detail -> dish detail):
+- Wrap the switching content in a simple transition component that animates:
+  - opacity and slight translateY (2–6px)
+- Ensure unmount/mount doesn’t flash:
+  - Keep previous view mounted for 1 frame if needed, or use a keyed wrapper with CSS transitions.
+
+If using shadcn Dialog/Drawer:
+- Ensure DialogContent has consistent animation:
+  - data-[state=open]:animate-in data-[state=closed]:animate-out
+  - fade-in-0 zoom-in-95 slide-in-from-bottom-2 (mobile)
+  - fade-out-0 zoom-out-95 slide-out-to-bottom-2
+
+Use shadcn animation utilities if already present; otherwise add minimal keyframes.
+
+------------------------------------------------------------
+3) MODALS / DRAWERS (PREMIUM FEEL)
+------------------------------------------------------------
+- Overlay: slightly blurred, warm tint, no harsh black:
+  bg-foreground/35 backdrop-blur-sm
+- Content:
+  rounded-2xl border border-border bg-card shadow-lift
+- Close button hover: subtle (bg-muted/40)
+
+Avoid layout shifts:
+- Fix modal max height and use internal ScrollArea for content:
+  max-h-[90vh] overflow-hidden + inner overflow-y-auto
+
+------------------------------------------------------------
+4) CARDS (CLEAN, CLASSY INTERACTION)
+------------------------------------------------------------
+For DishCard and WineCard:
+- Add consistent hover + active states:
+  - hover shadow increase + slight lift
+  - active: scale-[0.995]
+- Add consistent spacing:
+  - padding p-5 or p-6
+  - gap-2 or gap-3 for stacked text
+- Improve text hierarchy:
+  - Title: font-medium/semibold
+  - Meta: text-muted-foreground, smaller size
+  - Clamp long titles to 2 lines, show full in modal
+
+Add keyboard accessibility:
+- Make cards focusable when clickable (button or role=button + tabIndex)
+- Add focus-visible ring
+
+------------------------------------------------------------
+5) FILTER PANEL (SMOOTHER + LESS JUMPY)
+------------------------------------------------------------
+- Ensure filter changes don’t cause layout shift:
+  - keep panel height stable
+  - animate only opacity/transform for sections
+- For “Apply Filters” flow:
+  - show subtle “Unsaved changes” indicator with fade
+  - Apply button uses a gentle pulse or highlight (only when enabled)
+
+------------------------------------------------------------
+6) LOADING STATES (NO JANK)
+------------------------------------------------------------
+- Add skeleton loaders for wine list and pairing cards (shadcn Skeleton).
+- When switching states, show skeleton for 150–250ms if data is not ready to avoid flashes.
+- Use consistent spinner only for actions (save/update).
+
+------------------------------------------------------------
+7) PERFORMANCE CLEANUP (IMPORTANT FOR SMOOTHNESS)
+------------------------------------------------------------
+- Memoize heavy computed lists (pairings, filtered wines) with useMemo.
+- Memoize card components with React.memo if props are stable.
+- Avoid re-sorting/re-filtering on every keystroke (only appliedFilters triggers).
+- Avoid animating height for large lists; use opacity/transform.
+
+------------------------------------------------------------
+8) QA CHECKLIST
+------------------------------------------------------------
+- No flicker when opening/closing modals.
+- No scroll jump when going back from dish -> wine detail.
+- No text overflow.
+- Mobile transitions feel smooth (60fps).
+- Reduced motion respected.
+
+------------------------------------------------------------
+DELIVERABLES
+------------------------------------------------------------
+1) Implement shared transition utilities/classes.
+2) Update list <-> detail transitions and modal animations.
+3) Add consistent card hover/focus/active motion.
+4) Add skeleton loading states in key areas.
+5) Memoize expensive computations to keep interactions smooth.
+6) List modified files and confirm app runs with a noticeably smoother, classier feel.

@@ -1,0 +1,127 @@
+Upgrade ONLY the DishDetailModal and WineDetailModal UI to feel like a premium Middle Eastern / Mediterranean menu (Delbar-inspired) while keeping the new theme tokens (background/card/primary/gold/blush/etc.). Do NOT change app layout outside these modals.
+
+----------------------------------------------------
+1) MODAL CONTAINER + OVERLAY
+----------------------------------------------------
+- Overlay: warm dark tint (not pure black) + slight backdrop blur.
+  Example: bg-foreground/40 backdrop-blur-sm
+- Modal panel:
+  - rounded-2xl
+  - border border-border
+  - bg-card
+  - shadow-lift
+  - max-w-[860px] w-[94vw]
+  - max-h-[90vh] overflow-hidden (use internal scroll sections)
+
+----------------------------------------------------
+2) PREMIUM HEADER (SIGNATURE LOOK)
+----------------------------------------------------
+Add a patterned header band at the top of the modal:
+- Use a div with class "bg-delbar-pattern"
+- Keep opacity extremely low
+- Add padding and a thin gold divider line under header:
+  border-b border-gold/30
+
+Header content layout:
+- Left:
+  - Title (text-2xl md:text-3xl font-semibold tracking-tight)
+  - Subtitle line (muted): category • tags OR region • grapes • vintage
+- Right:
+  - Price tier badge ($-$$$$) styled as:
+    border border-gold/40 bg-gold/10 text-foreground px-3 py-1 rounded-full text-sm
+
+Close button:
+- top-right
+- shadcn Button variant="ghost" size="icon"
+- hover bg-blush/20
+- focus ring uses ring-gold
+
+----------------------------------------------------
+3) QUICK INSIGHT STRIP (CHIP GRID)
+----------------------------------------------------
+Below header, add a compact grid of chips/cards (2 cols mobile, 3–6 cols desktop):
+Each chip:
+- bg-muted/50
+- border border-border
+- rounded-xl
+- p-3
+- Label: text-[11px] uppercase tracking-widest text-muted-foreground
+- Value: text-sm font-medium text-foreground
+
+Dish chips:
+- Protein, Sauce, Cooking, Spice, Richness
+Wine chips:
+- Body, Acidity, Tannin, Sweetness, Oak (+ Alcohol if available)
+
+----------------------------------------------------
+4) CONTENT LAYOUT (TWO COLUMN DESKTOP, STACK MOBILE)
+----------------------------------------------------
+Use:
+- container: grid grid-cols-1 md:grid-cols-2 gap-6
+- internal content scroll area:
+  - body wrapper: overflow-y-auto max-h-[calc(90vh-220px)]
+
+Left column sections:
+- Section title style:
+  text-sm uppercase tracking-widest text-muted-foreground
+- Section card:
+  bg-card rounded-2xl border border-border p-5
+
+Dish modal left:
+- “Description”
+- “Flavor profile” bullets (3–5)
+- “Chef’s pairing logic” (2 sentences) with a left border accent:
+  border-l-2 border-olive/50 bg-muted/30 p-4 rounded-xl
+
+Wine modal left:
+- “Tasting notes” with two subheads:
+  Aroma (3 bullets)
+  Palate (3 bullets)
+- “Structure” mini-grid using chips
+
+Right column sections:
+Dish modal right:
+- “Top Pairings” (Top 3 wines)
+Each wine row/card:
+- clickable (opens Wine modal)
+- bg-card border border-border rounded-2xl p-5
+- hover: shadow-soft translate-y-[-1px]
+Inside:
+  - Name + vintage
+  - Region muted
+  - Badges: style badges + price tier
+  - “Why it works” one-liner
+  - Collapsible accordion: “Score breakdown”
+    Use shadcn Accordion with 5–6 rows.
+
+Wine modal right:
+- “Pairs best with” tags (Badge components)
+- “Why guests like it” 2 bullets
+- Optional “Avoid with” only if present; subtle terracotta tint:
+  bg-terracotta/10 border border-terracotta/25
+
+----------------------------------------------------
+5) INTERACTIONS + UX
+----------------------------------------------------
+- Clicking a wine pairing in Dish modal opens Wine modal and shows a small “← Back to dish” link at top of Wine modal (store previousDish in state).
+- ESC closes.
+- Click outside closes.
+- Trap focus (if using shadcn Dialog, it’s handled).
+- Prevent background scroll while open.
+
+----------------------------------------------------
+6) IMPLEMENT USING SHADCN COMPONENTS
+----------------------------------------------------
+Prefer shadcn:
+- Dialog (or Drawer if you already use it)
+- Button, Badge, Separator, Accordion, ScrollArea (optional)
+
+Do not introduce new UI libs.
+
+----------------------------------------------------
+7) DELIVERABLES
+----------------------------------------------------
+- Modify only modal-related components and any small supporting utilities/classes (like bg-delbar-pattern).
+- Keep colors via tokens only (no random hex in components).
+- Confirm no text overflow and mobile scroll works.
+- List changed files and confirm app runs.

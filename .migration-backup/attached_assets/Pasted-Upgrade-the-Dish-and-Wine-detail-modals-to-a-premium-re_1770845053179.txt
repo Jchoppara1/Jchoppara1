@@ -1,0 +1,115 @@
+Upgrade the Dish and Wine detail modals to a premium, restaurant-quality UI while keeping the existing theme (colors/typography). Do not redesign the whole app—only enhance the modal/drawer detail experience.
+
+--------------------------------------------------
+VISUAL STYLE (KEEP THEME, UPGRADE POLISH)
+--------------------------------------------------
+- Modal container: rounded-2xl, soft shadow, clean spacing (24–32px padding).
+- Header: title + small subtitle line, with close button aligned right.
+- Use subtle dividers (thin line or low-opacity border).
+- Use “pill” badges for attributes (small rounded full, light border).
+- Add a sticky footer on mobile with a single action button: “Back to results” (optional).
+
+--------------------------------------------------
+MODAL LAYOUT (STRUCTURE)
+--------------------------------------------------
+
+1) HEADER BLOCK (both Dish + Wine modals)
+- Top row:
+  - Title (Dish name OR Wine name) large and bold
+  - Close button icon (X)
+- Second row (small text):
+  - For dish: category • key tags (e.g., spicy, creamy, grilled)
+  - For wine: region/appellation • grape(s) • vintage
+- Right side (if space): Price tier badge ($-$$$$)
+
+2) QUICK INSIGHT STRIP (premium, scannable)
+Create a horizontal strip (wrap on mobile) of 4–6 small “chips”:
+- Dish: Protein, Sauce, Spice, Richness, Cooking method
+- Wine: Body, Acidity, Tannin, Sweetness, Oak, Alcohol(if available)
+
+Chips should be consistent size, with:
+- label in small uppercase (e.g., “ACIDITY”)
+- value below (e.g., “High”)
+Example chip: “ACIDITY / High”
+
+3) MAIN CONTENT (two sections)
+Use a two-column layout on desktop; stack on mobile.
+
+LEFT COLUMN (Dish modal):
+- “Description” (full dish description)
+- “Flavor Profile” bullets:
+  - Dominant flavor notes (e.g., citrus, garlic, smoke, herbs)
+  - Texture/richness note
+  - Spice note
+- “Chef’s pairing logic” (short paragraph) generated from score breakdown:
+  - 1–2 sentences in a confident but simple tone.
+
+RIGHT COLUMN (Dish modal):
+- “Top Pairings” list (Top 3 wines)
+Each pairing row/card shows:
+  - Wine name + vintage
+  - Region small text
+  - Price tier badge
+  - 1-line “Why it works”
+  - Expandable “Score breakdown” accordion:
+     Intensity match
+     Acid/fat balance
+     Tannin/protein match
+     Spice handling
+     Sauce synergy
+     Regional bonus
+
+LEFT COLUMN (Wine modal):
+- “Tasting Notes”
+  - Aroma (3 bullets)
+  - Palate (3 bullets)
+- “Structure” as a compact grid:
+  - Body | Acidity | Tannin | Sweetness | Oak
+- “Serving” small line:
+  - temp suggestion, glass suggestion (if available)
+
+RIGHT COLUMN (Wine modal):
+- “Pairs Best With” as tags (3–6 tags)
+- “Why guests like it” section:
+  - 2 short bullets derived from notes (e.g., “Bright and refreshing”, “Silky finish”)
+- Optional: “Avoid with” (only if relevant, subtle warning style)
+
+--------------------------------------------------
+INTERACTION DETAILS (FEELS PREMIUM)
+--------------------------------------------------
+- Make “Top Pairings” rows clickable: clicking a wine row inside Dish modal opens Wine modal for that wine.
+- Add a back behavior:
+  - If user opened Wine modal from Dish modal, show a small back link: “← Back to dish”
+- Modal open/close animation:
+  - Backdrop opacity transition
+  - Modal scale 0.98 → 1 + slight translateY
+  - 220ms, ease-out
+- Add ESC close, click-outside close.
+- Trap focus for accessibility.
+- Prevent background scroll.
+
+--------------------------------------------------
+TEXT QUALITY RULES (IMPORTANT)
+--------------------------------------------------
+- No generic filler like “This wine is great”.
+- Keep explanations specific:
+  - mention acid cutting richness, tannin with protein, off-dry for spice, etc.
+- Use “typical profile” language if inferred:
+  - “Typical of Sauvignon Blanc: zesty citrus, high acidity…”
+
+--------------------------------------------------
+RESPONSIVE REQUIREMENTS
+--------------------------------------------------
+- Desktop: max width 720–860px; two columns with gap.
+- Mobile: full width 94–96%, max height 90vh, internal scroll.
+- No text overflow: use break-words, clamp long headings, wrap tags.
+
+--------------------------------------------------
+DELIVERABLES
+--------------------------------------------------
+1) Update DishDetailModal and WineDetailModal to match above layout.
+2) Ensure clicking a wine pairing inside Dish modal opens Wine modal.
+3) Ensure only one modal open at a time and state transitions are clean.
+4) Provide a short list of changed files and confirm app runs.
+
+Implement this now in the existing repo without changing unrelated files.

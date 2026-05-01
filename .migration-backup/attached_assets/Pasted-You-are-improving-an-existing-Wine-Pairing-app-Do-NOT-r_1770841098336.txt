@@ -1,0 +1,63 @@
+You are improving an existing Wine Pairing app. Do NOT rewrite the whole project. First, scan the repository and identify the current flow: where menu text and wine list are ingested, where pairings are computed, and where UI renders results. Then implement upgrades in-place.
+
+GOALS
+1) Pairing logic: increase accuracy and consistency.
+2) Wine descriptions: generate structured, vivid, customer-friendly notes.
+3) Price level: normalize pricing into tiers ($, $$, $$$, $$$$) based on bottle/glass prices and local percentiles.
+
+DATA INGESTION
+- The input is (A) a food menu (items with name + optional description + category) and (B) a wine list (name, producer, vintage, region/appellation, grape(s), style, price glass/bottle, optional tasting notes).
+- Add robust parsing so messy menu text still becomes structured objects.
+- Add a WineProfile normalization step that tries to infer: color (red/white/rose/sparkling/fortified), body (light/med/full), sweetness (dry/off-dry/sweet), acidity (low/med/high), tannin (low/med/high), oak (none/light/med/heavy), key flavor notes, region cues, grapes.
+
+PAIRING ENGINE (RULE-BASED + SCORING)
+- Implement a scoring function that ranks wines per dish using weighted features:
+  - Dish features: protein type (beef/lamb/pork/chicken/seafood/shellfish/veg), cooking method (grilled/fried/roasted/raw/braised), dominant sauce (cream/tomato/butter/citrus/soy/chili), spice/heat level, richness/fat, salt, sweetness, acidity.
+  - Wine features from WineProfile above.
+- Core rules (must encode and explain in code comments):
+  - Match intensity: light dishes -> light wines; heavy/rich -> fuller wines.
+  - Acid cuts fat: high-acid wines score higher for creamy/fatty dishes.
+  - Tannin vs protein: higher tannin works with red meat and grilled proteins; penalize tannin with delicate fish.
+  - Heat/spice: penalize high alcohol & heavy tannin; reward off-dry/low alcohol/high fruit for spicy dishes.
+  - Sweetness: dessert and spicy benefit from sweetness; penalize sweetness with very savory salty dishes unless intentional.
+  - Umami: reward higher acidity or aged wines; avoid very tannic young reds for strong umami unless beef.
+  - Regional/typical pairings bonus (e.g., Chianti with tomato/pasta, Sancerre with goat cheese, Riesling with Asian spice, Champagne with fried foods).
+- Output: for each dish return top 3 wines with:
+  - score breakdown (intensity, acid/fat, tannin/protein, spice handling, sauce match, regional bonus)
+  - short pairing explanation (1–2 sentences)
+  - “avoid” note if a wine is commonly mismatched (optional)
+
+WINE DESCRIPTION GENERATOR
+- Build a function that produces a structured description object:
+  - headline (8–12 words)
+  - aroma bullets (3)
+  - palate bullets (3)
+  - structure (body/acidity/tannin/oak/sweetness)
+  - best pairings (3 dish tags)
+  - serving suggestions (temp, glass type optional)
+- If existing wine notes are present, enhance rather than replace; keep truthy and non-hallucinatory (do not invent producer facts). If information is missing, describe in a “style-based” way using grape/style defaults and label it as “typical profile”.
+
+PRICE NORMALIZATION
+- Compute tiers from available prices:
+  - If bottle price exists: use it; else infer from glass*5 as fallback.
+  - Build distribution of bottle prices in the restaurant list and assign:
+    $ = bottom 25%, $$ = 25–50%, $$$ = 50–75%, $$$$ = top 25%
+  - Store tier and show it in UI consistently.
+
+API + STORAGE
+- Add/extend endpoints:
+  - POST /analyze (menu + wine list -> structured menu + wine profiles)
+  - POST /pair (structured menu + wine profiles -> pairings)
+- Cache analysis results (per input hash) to avoid reprocessing.
+- Add input validation and good error messages.
+
+UI ENHANCEMENTS (do not change theme, just upgrade components)
+- Improve wine cards: show tier, style badges (dry/high-acid/light-body etc.), and a “Why it works” expandable section.
+- Add dish filters (category, protein type, spicy, vegetarian).
+- Add a toggle: “Classic pairings” vs “Adventurous pairings” (adventurous allows unconventional but still logical pairings by widening score thresholds and adding novelty bonus).
+- Fix any layout overflow; ensure mobile responsiveness.
+
+DELIVERABLES
+- Identify the key files changed with a brief summary.
+- Add unit tests for: parsing, WineProfile inference, pairing scoring, price tiering.
+- Run lint/type checks and ensure app still runs.

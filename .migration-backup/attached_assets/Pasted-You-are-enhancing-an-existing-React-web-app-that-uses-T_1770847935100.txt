@@ -1,0 +1,175 @@
+You are enhancing an existing React (web) app that uses Tailwind CSS + shadcn/ui.
+
+TASK: Adjust the UI theme to match a Middle Eastern / Mediterranean restaurant aesthetic inspired by delbaratl.com: warm sand + blush neutrals, olive/emerald accents, brass/gold highlights, soft rounded shapes, and a subtle wavy/arabesque texture used sparingly. Keep the current layout and components; change styling + theme tokens only. Do NOT rewrite business logic.
+
+--------------------------------------------
+1) AUDIT
+--------------------------------------------
+- Identify: Tailwind version, shadcn setup, where globals.css (or app/globals.css) lives, where tailwind.config.* is, and where shadcn components reside.
+- Confirm whether the app uses shadcn “CSS variables theme” pattern (hsl(var(--...))).
+
+--------------------------------------------
+2) THEME TOKENS (CSS VARIABLES)
+--------------------------------------------
+Implement a Delbar-inspired palette using CSS variables in globals.css.
+
+Create a new theme section under :root and .dark (keep dark minimal if app is mostly light).
+Use the shadcn token names so components update automatically:
+  --background
+  --foreground
+  --card
+  --card-foreground
+  --popover
+  --popover-foreground
+  --primary
+  --primary-foreground
+  --secondary
+  --secondary-foreground
+  --muted
+  --muted-foreground
+  --accent
+  --accent-foreground
+  --destructive
+  --destructive-foreground
+  --border
+  --input
+  --ring
+
+Add custom tokens for “brass/gold” and “blush”:
+  --gold
+  --blush
+  --olive
+  --terracotta
+
+Use HSL values (preferred by shadcn). Pick a warm sand base, blush surface, espresso text, olive accent, brass highlight.
+Example target “feel” (do not hardcode hex in components; only tokens):
+- background: warm sand
+- card: creamy off-white with a subtle warm tint
+- primary: olive/emerald
+- accent: blush/terracotta for highlights
+- ring: brass/gold
+
+--------------------------------------------
+3) TAILWIND CONFIG (shadcn-compatible)
+--------------------------------------------
+Update tailwind.config to ensure colors reference CSS vars:
+
+extend: {
+  colors: {
+    background: "hsl(var(--background))",
+    foreground: "hsl(var(--foreground))",
+    card: "hsl(var(--card))",
+    "card-foreground": "hsl(var(--card-foreground))",
+    popover: "hsl(var(--popover))",
+    "popover-foreground": "hsl(var(--popover-foreground))",
+    primary: "hsl(var(--primary))",
+    "primary-foreground": "hsl(var(--primary-foreground))",
+    secondary: "hsl(var(--secondary))",
+    "secondary-foreground": "hsl(var(--secondary-foreground))",
+    muted: "hsl(var(--muted))",
+    "muted-foreground": "hsl(var(--muted-foreground))",
+    accent: "hsl(var(--accent))",
+    "accent-foreground": "hsl(var(--accent-foreground))",
+    destructive: "hsl(var(--destructive))",
+    "destructive-foreground": "hsl(var(--destructive-foreground))",
+    border: "hsl(var(--border))",
+    input: "hsl(var(--input))",
+    ring: "hsl(var(--ring))",
+
+    // custom
+    gold: "hsl(var(--gold))",
+    blush: "hsl(var(--blush))",
+    olive: "hsl(var(--olive))",
+    terracotta: "hsl(var(--terracotta))",
+  },
+  borderRadius: {
+    lg: "var(--radius)",
+    md: "calc(var(--radius) - 2px)",
+    sm: "calc(var(--radius) - 4px)",
+  },
+  boxShadow: {
+    // warm, soft shadows
+    soft: "0 10px 30px rgba(42, 30, 26, 0.10)",
+    lift: "0 12px 40px rgba(42, 30, 26, 0.14)",
+  },
+}
+
+Also set a slightly larger --radius in globals.css (e.g., 1rem–1.25rem) to get that boutique, soft look.
+
+--------------------------------------------
+4) TEXTURE / PATTERN (SUBTLE, TASTEFUL)
+--------------------------------------------
+Delbar uses a wavy/pattern motif. Add a very low-opacity background texture used ONLY in:
+- top header area / navbar background OR
+- modal headers OR
+- empty states
+
+Implement as:
+- an inline SVG data-uri background in a utility class (e.g., .bg-delbar-pattern)
+- opacity extremely low (0.04–0.07)
+- no performance issues (repeat, small svg)
+
+Do NOT plaster the whole app; keep it premium and minimal. (Inspired by the wavy pattern motif on delbaratl.com.) 
+
+--------------------------------------------
+5) COMPONENT POLISH (shadcn components)
+--------------------------------------------
+Update existing shadcn/ui components usage and/or component variants WITHOUT changing layout:
+
+Buttons (Button component variants):
+- default: olive primary with good contrast
+- secondary: warm surface with border
+- outline: border + slight blush hover
+- focus ring: brass/gold ring (ring-gold)
+- hover transitions: 200–250ms ease-out
+
+Cards:
+- background: card token
+- border: border token
+- shadow: shadow-soft; hover shadow-lift + slight translateY(-1px)
+- increase padding slightly (p-5/p-6 where appropriate)
+
+Badges/Chips:
+- pill shape
+- muted background
+- gold outline for price tier badges ($-$$$$)
+- terracotta tint for spicy tags
+- olive tint for “fresh/high acid” tags
+
+Modals/Drawers:
+- overlay not pure black: warm dark overlay with slight blur
+- header has thin gold divider line
+- ensure no text overflow and mobile 90vh internal scroll
+
+Inputs:
+- rounded-xl
+- warm borders
+- focus ring brass/gold + olive accent
+
+--------------------------------------------
+6) TYPOGRAPHY (OPTIONAL, LIGHT TOUCH)
+--------------------------------------------
+If app currently uses default fonts, add:
+- Headings: a tasteful serif (e.g., Cormorant Garamond or Playfair Display)
+- Body: keep existing sans or Inter
+Do this via tailwind fontFamily and one import, but do NOT overdo it (headings only).
+
+--------------------------------------------
+7) APPLY TO KEY SCREENS
+--------------------------------------------
+Apply the new theme to:
+- Navbar / header
+- Dish cards + Wine cards
+- Detail modals
+- Filters/search inputs
+- Pairing explanation blocks (add a left accent border + warm background)
+
+Do not break existing animations; just ensure timing/easing feels smooth.
+
+--------------------------------------------
+8) DELIVERABLES
+--------------------------------------------
+- Implement changes in-place.
+- Output the list of modified files.
+- Run the app and ensure no Tailwind/shadcn build errors.
+- Confirm color tokens are used everywhere (no random hardcoded colors in components).

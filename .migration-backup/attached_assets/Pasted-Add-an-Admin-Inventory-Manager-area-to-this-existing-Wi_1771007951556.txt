@@ -1,0 +1,186 @@
+Add an Admin Inventory Manager area to this existing Wine Pairing app.
+
+CRITICAL CONSTRAINTS
+- Admin users must ONLY be able to manage restaurant data: menu items and wine items.
+- Admin users must NOT be able to change the UI/theme, pairing logic, scoring formula, or any global content/templates.
+- Admin UI must be minimal and use existing components (shadcn/ui) and existing theme tokens.
+- Do NOT introduce any “CMS” features or free-form page editing.
+
+SCOPE
+Admin can:
+1) Login (secure)
+2) View list of menu items and wine items
+3) Add new menu/wine items
+4) Edit existing menu/wine items (specific fields only)
+5) Mark items as Out of Stock (toggle)
+6) Label items (e.g., “Seasonal”, “New”, “Chef’s special”, “By the glass”)
+7) Changes affect what appears to regular users:
+   - Out of stock items are hidden from pairing suggestions OR clearly marked as unavailable (use a consistent rule)
+   - Pairing results must not include out-of-stock wines by default
+
+Admin cannot:
+- Edit any UI copy outside item fields
+- Upload custom CSS/theme values
+- Modify scoring logic settings or weights
+- Modify “wine description generator” templates
+- Modify app navigation (except adding Admin route)
+- Modify any user-facing static text beyond menu/wine item fields
+
+------------------------------------------------------------
+1) REPO AUDIT & STACK DETECTION
+------------------------------------------------------------
+- Detect backend framework: Express / Next.js API routes / FastAPI etc.
+- Detect database: Postgres (Prisma), Mongo, SQLite, Supabase, or JSON file.
+- Reuse existing auth patterns if present. If none, implement a minimal secure admin auth.
+
+------------------------------------------------------------
+2) DATA MODEL CHANGES
+------------------------------------------------------------
+Add fields (if they don’t already exist):
+
+MenuItem:
+- id
+- name (string)
+- description (string, optional)
+- category (string)
+- dietaryTags (string[]: vegetarian, vegan, glutenFree, etc.) optional
+- outOfStock (boolean, default false)
+- labels (string[]: seasonal, new, chefSpecial) optional
+- updatedAt
+
+WineItem:
+- id
+- name
+- producer (optional)
+- vintage (optional)
+- region (optional)
+- grapes (string[] optional)
+- style (optional)
+- priceGlass (number optional)
+- priceBottle (number optional)
+- notes (optional)
+- outOfStock (boolean, default false)
+- labels (string[]: byTheGlass, featured, new) optional
+- updatedAt
+
+IMPORTANT:
+- Do not add any fields that would allow UI editing, template editing, or “arbitrary HTML”.
+
+------------------------------------------------------------
+3) AUTH: ADMIN LOGIN ONLY
+------------------------------------------------------------
+Implement admin auth with these rules:
+
+- Single Admin role only: role = "admin"
+- Admin accounts are created via:
+   OPTION A (preferred): environment variable bootstrap (ADMIN_EMAIL + ADMIN_PASSWORD) to create first admin on startup
+   OPTION B: a one-time CLI/seed script in repo to create admin
+- Password hashing must use bcrypt or argon2.
+- Login returns a session cookie (httpOnly, secure where applicable) or JWT stored in httpOnly cookie.
+- Protect all /admin API routes with requireAdmin middleware.
+- Rate limit login attempts (basic) and return generic errors (no user enumeration).
+
+DO NOT add “sign up” UI for the public.
+
+------------------------------------------------------------
+4) BACKEND ROUTES (ADMIN ONLY)
+------------------------------------------------------------
+Create admin endpoints:
+
+POST   /api/admin/login
+POST   /api/admin/logout
+GET    /api/admin/me
+
+Menu:
+GET    /api/admin/menu
+POST   /api/admin/menu
+PATCH  /api/admin/menu/:id
+PATCH  /api/admin/menu/:id/out-of-stock   (toggle)
+PATCH  /api/admin/menu/:id/labels         (replace labels)
+
+Wine:
+GET    /api/admin/wines
+POST   /api/admin/wines
+PATCH  /api/admin/wines/:id
+PATCH  /api/admin/wines/:id/out-of-stock
+PATCH  /api/admin/wines/:id/labels
+
+Validation:
+- Validate inputs (zod/yup/joi depending on stack).
+- Restrict editable fields to the ones listed above.
+- Reject unknown fields to prevent UI/template injection.
+
+------------------------------------------------------------
+5) USER-FACING BEHAVIOR (OUT OF STOCK)
+------------------------------------------------------------
+Decide and implement this consistent behavior:
+- Default: out-of-stock wines MUST NOT appear in pairing results.
+- If user is viewing a wine list screen, out-of-stock wines can either:
+   A) be hidden, OR
+   B) shown with an “Out of stock” badge and disabled selection.
+Choose ONE approach and apply consistently.
+
+Menu out-of-stock:
+- out-of-stock dishes should either be hidden OR shown disabled (choose one, consistent).
+
+------------------------------------------------------------
+6) ADMIN UI (SHADCN + TAILWIND, MINIMAL)
+------------------------------------------------------------
+Add route: /admin
+- If not logged in → show AdminLogin page
+- If logged in → show AdminDashboard
+
+AdminDashboard layout:
+- Tabs: “Menu Items” | “Wines”
+- Each tab shows a table/list:
+   - Name
+   - Category/Style
+   - Labels (chips)
+   - Out of Stock toggle (switch)
+   - Edit button
+   - Add new button
+
+Edit/Add forms:
+- Use shadcn Dialog (modal) with controlled inputs.
+- Fields strictly limited to the model fields above.
+- Labels managed with a controlled multi-select / chip input:
+   - Provide a fixed list of allowed labels (do not allow arbitrary new labels), e.g.:
+     Menu labels: ["Seasonal","New","ChefSpecial"]
+     Wine labels: ["Featured","New","ByTheGlass","Reserve"]
+- For grapes field, allow comma-separated input and normalize to string[].
+
+UX requirements:
+- Toast on success/failure
+- Loading state
+- Confirm before delete (NOTE: Deleting is optional; prefer soft disable via outOfStock. If delete exists, restrict to admin and confirm.)
+
+------------------------------------------------------------
+7) SECURITY / LOCKDOWN
+------------------------------------------------------------
+- Admin endpoints must be separate and protected.
+- Do NOT expose admin mutation endpoints to regular users.
+- Ensure CORS/cookies configured correctly.
+- Prevent XSS:
+   - Sanitize or escape description/notes on render, or render as plain text only.
+- Ensure that admin cannot alter any code-driven pairing rules:
+   - No “weights” or “settings” admin panel.
+   - No “template editor”.
+
+------------------------------------------------------------
+8) TESTING / QA
+------------------------------------------------------------
+Add tests:
+- Login success/failure
+- Admin route protection
+- Out-of-stock toggle removes wine from pairing results
+- Unknown fields rejected by validation
+
+Provide:
+- A short setup section in README:
+   - required env vars for first admin
+   - how to login to /admin
+
+DELIVERABLES
+- Implement all changes with minimal file edits.
+- List modified files.
+- Confirm the app runs and existing user flows still work.
