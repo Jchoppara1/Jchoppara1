@@ -8,6 +8,7 @@ pnpm workspace monorepo hosting the Del Bar Wine List Manager app — a restaura
 
 - **`artifacts/delbar-wine`** — React + Vite frontend (mounted at `/`)
 - **`artifacts/api-server`** — Express API server (mounted at `/api`)
+- **`artifacts/delbar-pitch-deck`** — 14-slide sales & functionality pitch deck (mounted at `/delbar-pitch-deck/`)
 
 ## Stack
 

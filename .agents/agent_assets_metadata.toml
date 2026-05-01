@@ -1,0 +1,8 @@
+uploads = []
+outputs = []
+
+[[generated]]
+id = "DLYY9c7A1tTwzHDwo16ku"
+uri = "file://artifacts/delbar-pitch-deck/public/hero-wine.png"
+type = "image"
+title = "generated_image"
