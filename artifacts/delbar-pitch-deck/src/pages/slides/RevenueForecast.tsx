@@ -37,9 +37,14 @@ export default function RevenueForecast() {
           </div>
         </div>
       </div>
-      <p className="font-body text-accent font-bold text-[2vw] mt-[5vh]">
-        Projected lift: +$162K to +$243K per year
-      </p>
+      <div className="mt-[4vh] flex items-baseline gap-[3vw]">
+        <p className="font-body text-accent font-bold text-[2vw]">
+          +$162K to +$243K per year
+        </p>
+        <p className="font-body text-muted text-[1.6vw]">
+          ($13,500 to $20,250 per month)
+        </p>
+      </div>
     </div>
   );
 }

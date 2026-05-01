@@ -25,8 +25,8 @@ export default function PlatformStats() {
         </div>
         <div className="w-[0.1vw] bg-text" style={{ opacity: 0.1 }} />
         <div className="flex-1 flex flex-col">
-          <p className="font-display font-bold text-primary text-[7vw] leading-none">8</p>
-          <p className="font-body text-muted text-[1.5vw] tracking-widest uppercase mt-[1.5vh]">Wine Categories</p>
+          <p className="font-display font-bold text-primary text-[7vw] leading-none">99%</p>
+          <p className="font-body text-muted text-[1.5vw] tracking-widest uppercase mt-[1.5vh]">Pairing Coverage</p>
           <div className="w-[3vw] h-[0.25vh] bg-primary mt-[2vh]" />
         </div>
       </div>
