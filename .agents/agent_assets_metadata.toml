@@ -1,8 +1,19 @@
 uploads = []
-outputs = []
 
 [[generated]]
 id = "DLYY9c7A1tTwzHDwo16ku"
 uri = "file://artifacts/delbar-pitch-deck/public/hero-wine.png"
 type = "image"
 title = "generated_image"
+
+[[outputs]]
+id = "PSVrP757g43zFqcihu7KZ"
+uri = "file://.local/outputs/Wine-Wise.pdf"
+type = "pdf"
+title = "Wine Wise.pdf"
+
+[[outputs]]
+id = "BJuORQDi3a5yzNipOL8lT"
+uri = "file://.local/outputs/Wine-Wise.pptx"
+type = "slides"
+title = "Wine Wise.pptx"

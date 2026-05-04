@@ -41,9 +41,20 @@ testem.log
 .DS_Store
 Thumbs.db
 
-.cursor/rules/nx-rules.mdc
-.github/instructions/nx.instructions.md
-
-# Replit
+# Replit internals
 .cache/
 .local/
+.agents/
+.replit
+.replitignore
+.upm/
+.config/
+
+# Migration artefacts (pre-workspace backup — not part of the source)
+.migration-backup/
+
+# Uploaded prompt/asset files from the build process (not source code)
+attached_assets/
+
+# Generated pitch deck images (large binary, reproducible via media-generation)
+artifacts/delbar-pitch-deck/public/hero-wine.png

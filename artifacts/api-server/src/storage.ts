@@ -160,7 +160,7 @@ function mapCategoryToFoodCategory(category: string): FoodCategory {
 }
 
 function loadWinesByGlassFromCSV(): WineWithClassification[] {
-  const csvPath = path.join(DATA_ROOT, 'attached_assets', 'wines_by_glass.csv');
+  const csvPath = path.join(DATA_ROOT, 'delbarcsv', 'wines_by_glass.csv');
   
   if (!fs.existsSync(csvPath)) {
     console.warn(`CSV file not found at ${csvPath}, using empty glass wine list`);
